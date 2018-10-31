@@ -39,7 +39,10 @@ private:
 
     OneElectronOperator S;  // overlap
 
-    OneElectronOperator h;  // one-electron interactions (i.e. the core Hamiltonian)
+    OneElectronOperator h;
+
+private:
+    // one-electron interactions (i.e. the core Hamiltonian)
     TwoElectronOperator g;  // two-electron interactions
 
     Eigen::MatrixXd C;  // total transformation matrix between the current (restricted) molecular orbitals and the atomic orbitals
@@ -68,9 +71,9 @@ public:
 
     
     // GETTERS
-    GQCP::OneElectronOperator get_S() const { return this->S; }
-    GQCP::OneElectronOperator get_h() const { return this->h; }
-    GQCP::TwoElectronOperator get_g() const { return this->g; }
+    const GQCP::OneElectronOperator& get_S() const { return this->S; }
+    const GQCP::OneElectronOperator& get_h() const { return this->h; }
+    const GQCP::TwoElectronOperator& get_g() const { return this->g; }
     size_t get_K() const { return this->K; }
 
     

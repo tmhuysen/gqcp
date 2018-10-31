@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 # Specify the project, its version and the used language
-project(gqcp
+project(gqcpTh
         VERSION 0.1.0
         LANGUAGES CXX)
 
@@ -20,7 +20,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -march=native")
 
 
 # Set CMake variables
