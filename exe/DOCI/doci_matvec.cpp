@@ -36,6 +36,7 @@ static void matvec2(benchmark::State& state) {
     GQCP::HamiltonianParameters ham_par = GQCP::constructRandomHamiltonianParameters(K);
     Eigen::VectorXd diagonal = doci.calculateDiagonal(ham_par);
     Eigen::VectorXd random = Eigen::VectorXd::Random(diagonal.rows());
+
     for (auto _ : state) {
         Eigen::VectorXd matvec = doci.matrixVectorProduct2(ham_par, random, diagonal);
         // Make sure the variable is not optimized away by compiler
@@ -45,15 +46,16 @@ static void matvec2(benchmark::State& state) {
 
 static void CustomArguments(benchmark::internal::Benchmark* b) {
     for (int i = 10; i <= 28; ++i){
-        b->Args({i, i/2});
+    //    b->Args({i, i/2});
     }
+    b->Args({20, 7});
 
 
 
 }
 
-BENCHMARK(matvec)->Apply(CustomArguments);
-BENCHMARK(matvec2)->Apply(CustomArguments)->UseRealTime();
+//BENCHMARK(matvec)->Apply(CustomArguments);
+BENCHMARK(matvec2)->Apply(CustomArguments);
 
 
 BENCHMARK_MAIN();

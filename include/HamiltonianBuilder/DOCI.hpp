@@ -85,69 +85,47 @@ public:
         // And multiply all contributions by 2
         ONV onv = this->fock_space.get_ONV(0);  // spin string with address
         size_t N = this->fock_space.get_N();
+        Matrixu m = this->fock_space.get_vertex_weights();
+        const TwoElectronOperator g = hamiltonian_parameters.get_g();
         // Diagonal contributions
         Eigen::VectorXd matvec = diagonal.cwiseProduct(x);
 
 
         for (size_t I = 0; I < dim; I++) {  // I loops over all the addresses of the onv
+
+            if (I > 0) {
+                size_t ov = onv.get_unsigned_representation();
+                // t gets this->representation's least significant 0 bits set to 1
+                unsigned long t = ov | (ov - 1UL);
+
+                // Next set to 1 the most significant bit to change,
+                // set to 0 the least significant ones, and add the necessary 1 bits.
+                onv.set_representation((t + 1UL) | (((~t & (t+1UL)) - 1UL) >> (__builtin_ctzl(ov) + 1UL)));
+            }
+
             for (size_t e1 = 0; e1 < N; e1++) {  // e1 (electron 1) loops over the (number of) electrons
                 size_t p = onv.get_occupied_index(e1);  // retrieve the index of a given electron
 
                 // remove the weight from the initial address I, because we annihilate
-                size_t address = I - this->fock_space.get_vertex_weights(p, e1 + 1);
+                size_t address = I - m[p][e1 + 1];
                 // The e2 iteration counts the amount of encountered electrons for the creation operator
                 // We only consider greater addresses than the initial one (because of symmetry)
                 // Hence we are only required to start counting from the annihilated electron (e1)
                 size_t e2 = e1;
 
-
-
-                // Test whether next orbital is occupied, until we reach unoccupied orbital
-                while (e2 < N - 1 && onv.get_occupied_index(e2 + 1) - onv.get_occupied_index(e2) == 1) {
-                    // Shift the address for the electrons encountered after the annihilation but before the creation
-                    // Their currents weights are no longer correct, the corresponding weights can be calculated
-                    // initial weight can be found in the addressing scheme, on the index of the orbital (row) and electron count (column)
-                    // since e2 starts at the annihilated position, the first shifted electron is at e2's position + 1, (given the while loop condition this is also (e2+1)'s position)
-                    // The nature of the addressing scheme requires us the add 1 to the electron count (because we start with the 0'th electron
-                    // And for the initial weight we are at an extra electron (before the annihilation) hence the difference in weight is:
-                    // the new weight at (e2+1) position (row) and e2+1 (column) - the old weight at  (e2+1) position (row) and e2+2 (column)
-                    address += this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 1) - this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 2);
-                    e2++;  // adding occupied orbitals to the electron count
-                }
-                size_t q = onv.get_occupied_index(e2) + 1;
-                e2++;
-                while (q < K) {
-                    size_t J = address + this->fock_space.get_vertex_weights(q, e2);
-
-                    // address has been calculated, update accordingly and at all instances of the fixed component
-                    matvec(I) += hamiltonian_parameters.get_g()(p, q, p, q) * x(J);
-                    matvec(J) += hamiltonian_parameters.get_g()(p, q, p, q) * x(I);
-
-                    // go to the next orbital
-                    q++;
-
-                    // if we encounter an occupied orbital, perform the shift, and test whether the following orbitals are occupied (or not)
-                    // then proceed to set q to the next non-occupied orbital.
-                    if (e2 < N && q == onv.get_occupied_index(e2)) {
-                        address += this->fock_space.get_vertex_weights(q, e2) - this->fock_space.get_vertex_weights(q, e2 + 1);
-                        while (e2 < N - 1 && onv.get_occupied_index(e2 + 1) - onv.get_occupied_index(e2) == 1) {
-                            // see previous
-                            address += this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 1) - this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 2);
-                            e2++;
-                        }
-                        q = onv.get_occupied_index(e2) + 1;
+                for (size_t q = p+1; q<K; q++){
+                    if (onv.isOccupied(q)){
                         e2++;
+                        address += m[q + 1][ e2 ] - m[q + 1][ e2 + 1 ];
+                    } else {
+                        size_t J = address + m[q][e2+1];
+                        // address has been calculated, update accordingly and at all instances of the fixed component
+                        matvec(I) += g(p, q, p, q) * x(J);
+                        matvec(J) += g(p, q, p, q) * x(I);
                     }
-                }  //  (creation)
-
+                }
             } // e1 loop (annihilation)
-
-            // Prevent last permutation
-            if (I < dim - 1) {
-                this->fock_space.setNext(onv);
-            }
         }
-
         return matvec;
     }
 

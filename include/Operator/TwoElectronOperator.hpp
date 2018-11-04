@@ -84,6 +84,8 @@ public:
 };
 
 
+using TwoElectronPtr = std::shared_ptr<TwoElectronOperator>;
+
 
 }  // namespace GQCP
 

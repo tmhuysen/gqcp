@@ -43,7 +43,7 @@ private:
     size_t K;  // number of spatial orbitals
     size_t N;  // number of electrons
     size_t unsigned_representation;  // unsigned representation
-    VectorXs occupation_indices;  // the occupied orbital electron indexes
+    size_t* occupation_indices;  // the occupied orbital electron indexes
                                   // it is a vector of N elements in which occupation_indices[j]
                                   // gives the occupied orbital index for electron j
 
@@ -67,6 +67,8 @@ public:
     ONV(size_t K, size_t unsigned_representation);
 
 
+
+
     // OPERATORS
     /**
      *  Overloading of operator<< for a GQCP::ONV to be used with streams
@@ -83,20 +85,20 @@ public:
      */
     bool operator!=(ONV& other) const;
 
-
+    size_t operator()(size_t p) const { return this->occupation_indices[p]; }
     // GETTERS & SETTERS
     /**
      *  @set to a new representation and calls this->updateOccupationIndices()
      */
     void set_representation(size_t unsigned_representation);
     size_t get_unsigned_representation() const { return unsigned_representation; }
-    VectorXs get_occupation_indices() const { return occupation_indices; }
+    //VectorXs get_occupation_indices() const { return occupation_indices; }
 
     /**
      *  @return index of occupied orbital based on the @param electron index
      *
      */
-    size_t get_occupied_index(size_t electron_index) const { return occupation_indices(electron_index); }
+    size_t get_occupied_index(size_t electron_index) const { return occupation_indices[electron_index]; }
 
 
     // PUBLIC METHODS

@@ -35,7 +35,7 @@ ONV::ONV(size_t K, size_t N, size_t representation):
     N (N),
     unsigned_representation (representation)
 {
-    occupation_indices = VectorXs::Zero(N);
+    occupation_indices = new size_t[N];
     this->updateOccupationIndices();  // throws error if the representation and N are not compatible
 }
 
@@ -45,7 +45,7 @@ ONV::ONV(size_t K, size_t N, size_t representation):
 ONV::ONV(size_t K, size_t representation):
     ONV(K, __builtin_popcountl(representation), representation)
 {
-    occupation_indices = VectorXs::Zero(N);
+    occupation_indices = new size_t[N];
     this->updateOccupationIndices();  // throws error if the representation and N are not compatible
 }
 
@@ -103,7 +103,7 @@ void ONV::updateOccupationIndices() {
     size_t l = this->unsigned_representation;
     int representation_electron = 0;
     while (l != 0) {
-        this->occupation_indices(representation_electron) = __builtin_ctzl(l);  // retrieves occupation index
+        this->occupation_indices[representation_electron] = __builtin_ctzl(l);  // retrieves occupation index
         representation_electron++;
         l ^= (l & -l);  // flip the least significant bit
     }

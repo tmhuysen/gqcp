@@ -28,6 +28,7 @@ namespace GQCP {
 
 
 
+
 /**
  *  A class that holds the matrix representation of a one-electron operator in an orbital basis
  */
@@ -91,6 +92,8 @@ public:
     void rotate(const GQCP::JacobiRotationParameters& jacobi_rotation_parameters) override;
 };
 
+
+using OneElectronPtr = std::shared_ptr<OneElectronOperator>;
 
 
 }  // namespace GQCP
