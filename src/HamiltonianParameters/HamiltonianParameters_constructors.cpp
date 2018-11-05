@@ -36,12 +36,12 @@ namespace GQCP {
 GQCP::HamiltonianParameters constructMolecularHamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_basis) {
 
     // Calculate the integrals for the molecular Hamiltonian
-    auto S = GQCP::LibintCommunicator::get().calculateOneElectronIntegrals(libint2::Operator::overlap, *ao_basis);
+    auto S = std::make_shared<OneElectronOperator>(GQCP::LibintCommunicator::get().calculateOneElectronIntegrals(libint2::Operator::overlap, *ao_basis));
     auto T = GQCP::LibintCommunicator::get().calculateOneElectronIntegrals(libint2::Operator::kinetic, *ao_basis);
     auto V = GQCP::LibintCommunicator::get().calculateOneElectronIntegrals(libint2::Operator::nuclear, *ao_basis);
-    auto H = T + V;
+    auto H =  std::make_shared<OneElectronOperator> (T + V);
     
-    auto g = GQCP::LibintCommunicator::get().calculateTwoElectronIntegrals(libint2::Operator::coulomb, *ao_basis);
+    auto g =  std::make_shared<TwoElectronOperator>( GQCP::LibintCommunicator::get().calculateTwoElectronIntegrals(libint2::Operator::coulomb, *ao_basis));
     
     
     // Construct the initial transformation matrix: the identity matrix
@@ -82,7 +82,7 @@ GQCP::HamiltonianParameters constructRandomHamiltonianParameters(size_t K) {
 
     std::shared_ptr<GQCP::AOBasis> ao_basis;  // nullptr because it doesn't make sense to set an AOBasis
 
-    return GQCP::HamiltonianParameters(ao_basis, *S, *H, *g, C);
+    return GQCP::HamiltonianParameters(ao_basis, S, H, g, C);
 }
     
     
@@ -203,7 +203,7 @@ GQCP::HamiltonianParameters readFCIDUMPFile(const std::string& fcidump_filename)
     GQCP::TwoElectronPtr G = std::make_shared<TwoElectronOperator>(g_SO);
     Eigen::MatrixXd C = Eigen::MatrixXd::Identity(K, K);
 
-    return GQCP::HamiltonianParameters(ao_basis, *S, *H_core, *G, C);
+    return GQCP::HamiltonianParameters(ao_basis, S, H_core, G, C);
 }
 
 
@@ -251,7 +251,7 @@ GQCP::HamiltonianParameters constructHubbardParameters(const Eigen::VectorXd &up
     GQCP::TwoElectronPtr G = std::make_shared<TwoElectronOperator>(g_SO);
     Eigen::MatrixXd C = Eigen::MatrixXd::Identity(K, K);
 
-    return GQCP::HamiltonianParameters(ao_basis, *S, *H_core, *G, C);
+    return GQCP::HamiltonianParameters(ao_basis, S, H_core, G, C);
 }
 
 

@@ -19,9 +19,10 @@ if("${LIBINT_PREFIX}" STREQUAL "LIBINT_PREFIX-NOTFOUND")
 else()
     # Set FOUND
     set(libint2_FOUND TRUE)
+        message(STATUS "--Libint 2 was found at " )
 
     # Set the INCLUDE_DIRS
-    set(libint2_INCLUDE_DIRS "${libint2_INCLUDE_DIRS};${LIBINT_PREFIX}/include;${LIBINT_PREFIX}/include/libint2")
+    set(libint2_INCLUDE_DIRS "${libint2_INCLUDE_DIRS};${LIBINT_PREFIX}/include")
 
     # Set the LIBRARIES
     set(libint2_LIBRARIES "${libint2_LIBRARIES};${LIBINT_PREFIX}/lib/libint2.a")

@@ -32,12 +32,12 @@ namespace GQCP {
  *  operator @param g and a transformation matrix between the current molecular orbitals and the atomic orbitals
  *  @param C
  */
-HamiltonianParameters::HamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_basis, GQCP::OneElectronOperator& S, GQCP::OneElectronOperator& h, GQCP::TwoElectronOperator& g, Eigen::MatrixXd& C) :
+HamiltonianParameters::HamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_basis, OneElectronPtr S, OneElectronPtr h, TwoElectronPtr g, const Eigen::MatrixXd& C) :
     BaseHamiltonianParameters(std::move(ao_basis)),
-    K (S.get_dim()),
-    S (&S),
-    h (&h),
-    g (&g),
+    K (S->get_dim()),
+    S (S),
+    h (h),
+    g (g),
     C (C)
 {
     // Check if the dimensions of all matrix representations are compatible
@@ -49,12 +49,12 @@ HamiltonianParameters::HamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_b
         }
     }
 
-    if ((h.get_dim() != this->K) || (g.get_dim() != this->K) || (C.cols() != this->K) || (C.rows() != this->K)) {
+    if ((h->get_dim() != this->K) || (g->get_dim() != this->K) || (C.cols() != this->K) || (C.rows() != this->K)) {
         throw error;
     }
 
 
-    if (S.get_matrix_representation().isZero(1.0e-08)) {
+    if (S->get_matrix_representation().isZero(1.0e-08)) {
         throw std::invalid_argument("The underlying overlap matrix cannot be a zero matrix.");
     }
 }

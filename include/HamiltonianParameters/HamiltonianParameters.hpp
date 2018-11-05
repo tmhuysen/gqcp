@@ -55,7 +55,7 @@ public:
      *  operator @param g and a transformation matrix between the current molecular orbitals and the atomic orbitals
      *  @param C
      */
-    HamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_basis, GQCP::OneElectronOperator& S, GQCP::OneElectronOperator& h, GQCP::TwoElectronOperator& g, Eigen::MatrixXd& C);
+    HamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_basis, OneElectronPtr S, OneElectronPtr h, TwoElectronPtr g, const Eigen::MatrixXd& C);
 
 
     /**
