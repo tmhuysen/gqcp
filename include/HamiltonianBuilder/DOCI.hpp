@@ -86,7 +86,7 @@ public:
         ONV onv = this->fock_space.get_ONV(0);  // spin string with address
         size_t N = this->fock_space.get_N();
         Matrixu m = this->fock_space.get_vertex_weights();
-        const TwoElectronOperator g = hamiltonian_parameters.get_g();
+        const TwoElectronOperator& g = hamiltonian_parameters.get_g();
         // Diagonal contributions
         Eigen::VectorXd matvec = diagonal.cwiseProduct(x);
 
