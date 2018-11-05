@@ -37,13 +37,13 @@ class HamiltonianParameters : public BaseHamiltonianParameters {
 private:
     size_t K;  // the number of spatial orbitals
 
-    OneElectronOperator S;  // overlap
+    OneElectronPtr S;  // overlap
 
-    OneElectronOperator h;
+    OneElectronPtr h;
 
 private:
     // one-electron interactions (i.e. the core Hamiltonian)
-    TwoElectronOperator g;  // two-electron interactions
+    TwoElectronPtr g;  // two-electron interactions
 
     Eigen::MatrixXd C;  // total transformation matrix between the current (restricted) molecular orbitals and the atomic orbitals
 
@@ -55,7 +55,7 @@ public:
      *  operator @param g and a transformation matrix between the current molecular orbitals and the atomic orbitals
      *  @param C
      */
-    HamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_basis, const GQCP::OneElectronOperator& S, const GQCP::OneElectronOperator& h, const GQCP::TwoElectronOperator& g, const Eigen::MatrixXd& C);
+    HamiltonianParameters(std::shared_ptr<GQCP::AOBasis> ao_basis, GQCP::OneElectronOperator& S, GQCP::OneElectronOperator& h, GQCP::TwoElectronOperator& g, Eigen::MatrixXd& C);
 
 
     /**
@@ -71,9 +71,9 @@ public:
 
     
     // GETTERS
-    const GQCP::OneElectronOperator& get_S() const { return this->S; }
-    const GQCP::OneElectronOperator& get_h() const { return this->h; }
-    const GQCP::TwoElectronOperator& get_g() const { return this->g; }
+    const GQCP::OneElectronOperator& get_S() const { return *this->S; }
+    const GQCP::OneElectronOperator& get_h() const { return *this->h; }
+    const GQCP::TwoElectronOperator& get_g() const { return *this->g; }
     size_t get_K() const { return this->K; }
 
     

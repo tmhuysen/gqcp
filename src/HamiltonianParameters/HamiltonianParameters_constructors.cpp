@@ -58,10 +58,10 @@ GQCP::HamiltonianParameters constructMolecularHamiltonianParameters(std::shared_
  */
 GQCP::HamiltonianParameters constructRandomHamiltonianParameters(size_t K) {
 
-    GQCP::OneElectronOperator S (Eigen::MatrixXd::Identity(K, K));  // the underlying orbital basis can be chosen as orthonormal, since the form of the underlying orbitals doesn't really matter
+    OneElectronPtr S = std::make_shared<OneElectronOperator>(Eigen::MatrixXd::Identity(K, K));  // the underlying orbital basis can be chosen as orthonormal, since the form of the underlying orbitals doesn't really matter
     Eigen::MatrixXd C (Eigen::MatrixXd::Identity(K, K));  // the transformation matrix C here doesn't really mean anything, because it doesn't link to any AO basis
 
-    GQCP::OneElectronOperator H (Eigen::MatrixXd::Random(K, K));  // uniformly distributed between [-1,1]
+    OneElectronPtr H = std::make_shared<OneElectronOperator>(Eigen::MatrixXd::Identity(K, K));  // uniformly distributed between [-1,1]
 
 
     // Unfortunately, the Tensor module provides uniform random distributions between [0, 1]
@@ -78,11 +78,11 @@ GQCP::HamiltonianParameters constructRandomHamiltonianParameters(size_t K) {
             }
         }
     }
-    GQCP::TwoElectronOperator g (g_tensor);
+    GQCP::TwoElectronPtr g = std::make_shared<TwoElectronOperator>(g_tensor);
 
     std::shared_ptr<GQCP::AOBasis> ao_basis;  // nullptr because it doesn't make sense to set an AOBasis
 
-    return GQCP::HamiltonianParameters(ao_basis, S, H, g, C);
+    return GQCP::HamiltonianParameters(ao_basis, *S, *H, *g, C);
 }
     
     
@@ -198,12 +198,12 @@ GQCP::HamiltonianParameters readFCIDUMPFile(const std::string& fcidump_filename)
     
     // Make the ingredients to construct HamiltonianParameters
     std::shared_ptr<GQCP::AOBasis> ao_basis;  // nullptr
-    GQCP::OneElectronOperator S (Eigen::MatrixXd::Identity(K, K));
-    GQCP::OneElectronOperator H_core (h_SO);
-    GQCP::TwoElectronOperator G (g_SO);
+    GQCP::OneElectronPtr S = std::make_shared<OneElectronOperator>(Eigen::MatrixXd::Identity(K, K));
+    GQCP::OneElectronPtr H_core = std::make_shared<OneElectronOperator>(h_SO);
+    GQCP::TwoElectronPtr G = std::make_shared<TwoElectronOperator>(g_SO);
     Eigen::MatrixXd C = Eigen::MatrixXd::Identity(K, K);
 
-    return GQCP::HamiltonianParameters(ao_basis, S, H_core, G, C);
+    return GQCP::HamiltonianParameters(ao_basis, *S, *H_core, *G, C);
 }
 
 
@@ -246,12 +246,12 @@ GQCP::HamiltonianParameters constructHubbardParameters(const Eigen::VectorXd &up
 
     // Make the ingredients to construct HamiltonianParameters
     std::shared_ptr<GQCP::AOBasis> ao_basis;  // nullptr
-    GQCP::OneElectronOperator S (Eigen::MatrixXd::Identity(K, K));
-    GQCP::OneElectronOperator H_core (h_SO);
-    GQCP::TwoElectronOperator G (g_SO);
+    GQCP::OneElectronPtr S = std::make_shared<OneElectronOperator>(Eigen::MatrixXd::Identity(K, K));
+    GQCP::OneElectronPtr H_core = std::make_shared<OneElectronOperator>(h_SO);
+    GQCP::TwoElectronPtr G = std::make_shared<TwoElectronOperator>(g_SO);
     Eigen::MatrixXd C = Eigen::MatrixXd::Identity(K, K);
 
-    return GQCP::HamiltonianParameters(ao_basis, S, H_core, G, C);
+    return GQCP::HamiltonianParameters(ao_basis, *S, *H_core, *G, C);
 }
 
 

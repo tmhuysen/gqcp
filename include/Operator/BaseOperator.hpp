@@ -20,6 +20,7 @@
 
 
 #include <Eigen/Dense>
+#include <memory>
 
 #include "JacobiRotationParameters.hpp"
 
