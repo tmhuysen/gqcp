@@ -154,18 +154,16 @@ Eigen::VectorXd DOCI::calculateDiagonal(const HamiltonianParameters& hamiltonian
     // And multiply all contributions by 2
     ONV onv = this->fock_space.get_ONV(0);  // onv with address 0
 
-    OneElectronOperator h = hamiltonian_parameters.get_h();
-    TwoElectronOperator g = hamiltonian_parameters.get_g();
 
     for (size_t I = 0; I < dim; I++) {  // I loops over addresses of spin strings
         for (size_t e1 = 0; e1 < this->fock_space.get_N(); e1++) {  // e1 (electron 1) loops over the (number of) electrons
             size_t p = onv.get_occupied_index(e1);  // retrieve the index of the orbital the electron occupies
 
-            diagonal(I) += 2 * h(p,p) + g(p,p,p,p);
+            diagonal(I) += 2 * hamiltonian_parameters.get_h()(p,p) + hamiltonian_parameters.get_g()(p,p,p,p);
             for (size_t e2 = 0; e2 < e1; e2++) {  // e2 (electron 2) loops over the (number of) electrons
                 // Since we are doing a restricted summation q<p (and thus e2<e1), we should multiply by 2 since the summand argument is symmetric.
                 size_t q = onv.get_occupied_index(e2);  // retrieve the index of the orbital the electron occupies
-                diagonal(I) += 2 * (2*g(p,p,q,q) - g(p,q,q,p));
+                diagonal(I) += 2 * (2*hamiltonian_parameters.get_g()(p,p,q,q) - hamiltonian_parameters.get_g()(p,q,q,p));
             }  // q or e2 loop
         } // p or e1 loop
 

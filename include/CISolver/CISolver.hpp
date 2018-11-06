@@ -37,7 +37,7 @@ namespace GQCP {
 class CISolver {
 private:
     HamiltonianBuilder* hamiltonian_builder;
-    HamiltonianParameters hamiltonian_parameters;
+    HamiltonianParameters* hamiltonian_parameters;
 
     std::vector<numopt::eigenproblem::Eigenpair> eigenpairs;  // eigenvalues and -vectors
 
@@ -46,7 +46,7 @@ public:
     /**
      *  Constructor given a @param hamiltonian_builder and @param hamiltonian_parameters
      */
-    CISolver(HamiltonianBuilder& hamiltonian_builder, const HamiltonianParameters& hamiltonian_parameters);
+    CISolver(HamiltonianBuilder& hamiltonian_builder, HamiltonianParameters& hamiltonian_parameters);
 
 
     // GETTERS

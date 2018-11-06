@@ -28,9 +28,9 @@ namespace GQCP {
 /**
  *  Constructor given a @param hamiltonian_builder and @param hamiltonian_parameters
  */
-CISolver::CISolver(HamiltonianBuilder& hamiltonian_builder, const HamiltonianParameters& hamiltonian_parameters) :
+CISolver::CISolver(HamiltonianBuilder& hamiltonian_builder, HamiltonianParameters& hamiltonian_parameters) :
     hamiltonian_builder (&hamiltonian_builder),
-    hamiltonian_parameters (hamiltonian_parameters)
+    hamiltonian_parameters (&hamiltonian_parameters)
 {
     auto K = hamiltonian_parameters.get_h().get_dim();
     if (K != this->hamiltonian_builder->get_fock_space()->get_K()) {
@@ -53,7 +53,7 @@ void CISolver::solve(numopt::eigenproblem::BaseSolverOptions& solver_options) {
 
         case numopt::eigenproblem::SolverType::DENSE: {
 
-            Eigen::MatrixXd matrix = this->hamiltonian_builder->constructHamiltonian(this->hamiltonian_parameters);
+            Eigen::MatrixXd matrix = this->hamiltonian_builder->constructHamiltonian(*this->hamiltonian_parameters);
 
             numopt::eigenproblem::DenseSolver solver = numopt::eigenproblem::DenseSolver(matrix, dynamic_cast<numopt::eigenproblem::DenseSolverOptions&>(solver_options));
 
@@ -65,8 +65,8 @@ void CISolver::solve(numopt::eigenproblem::BaseSolverOptions& solver_options) {
 
         case numopt::eigenproblem::SolverType::DAVIDSON: {
 
-            Eigen::VectorXd diagonal = this->hamiltonian_builder->calculateDiagonal(this->hamiltonian_parameters);
-            numopt::VectorFunction matrixVectorProduct = [this, &diagonal](const Eigen::VectorXd& x) { return hamiltonian_builder->matrixVectorProduct(hamiltonian_parameters, x, diagonal); };
+            Eigen::VectorXd diagonal = this->hamiltonian_builder->calculateDiagonal(*this->hamiltonian_parameters);
+            numopt::VectorFunction matrixVectorProduct = [this, &diagonal](const Eigen::VectorXd& x) { return hamiltonian_builder->matrixVectorProduct(*hamiltonian_parameters, x, diagonal); };
 
             numopt::eigenproblem::DavidsonSolver solver = numopt::eigenproblem::DavidsonSolver(matrixVectorProduct, diagonal, dynamic_cast<numopt::eigenproblem::DavidsonSolverOptions&>(solver_options));
 

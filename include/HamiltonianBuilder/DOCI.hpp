@@ -101,10 +101,10 @@ public:
                 // Hence we are only required to start counting from the annihilated electron (e1)
                 size_t e2 = e1;
 
-
+                size_t q = p+1;
 
                 // Test whether next orbital is occupied, until we reach unoccupied orbital
-                while (e2 < N - 1 && onv.get_occupied_index(e2 + 1) - onv.get_occupied_index(e2) == 1) {
+                while (e2 < N - 1 && onv.isOccupied(q)) {
                     // Shift the address for the electrons encountered after the annihilation but before the creation
                     // Their currents weights are no longer correct, the corresponding weights can be calculated
                     // initial weight can be found in the addressing scheme, on the index of the orbital (row) and electron count (column)
@@ -112,10 +112,10 @@ public:
                     // The nature of the addressing scheme requires us the add 1 to the electron count (because we start with the 0'th electron
                     // And for the initial weight we are at an extra electron (before the annihilation) hence the difference in weight is:
                     // the new weight at (e2+1) position (row) and e2+1 (column) - the old weight at  (e2+1) position (row) and e2+2 (column)
-                    address += this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 1) - this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 2);
+                    address += this->fock_space.get_vertex_weights(q, e2 + 1) - this->fock_space.get_vertex_weights(q, e2 + 2);
                     e2++;  // adding occupied orbitals to the electron count
+                    q++;
                 }
-                size_t q = onv.get_occupied_index(e2) + 1;
                 e2++;
                 while (q < K) {
                     size_t J = address + this->fock_space.get_vertex_weights(q, e2);
@@ -130,14 +130,15 @@ public:
 
                     // if we encounter an occupied orbital, perform the shift, and test whether the following orbitals are occupied (or not)
                     // then proceed to set q to the next non-occupied orbital.
-                    if (e2 < N && q == onv.get_occupied_index(e2)) {
+                    if (e2 < N && onv.isOccupied(q)) {
                         address += this->fock_space.get_vertex_weights(q, e2) - this->fock_space.get_vertex_weights(q, e2 + 1);
-                        while (e2 < N - 1 && onv.get_occupied_index(e2 + 1) - onv.get_occupied_index(e2) == 1) {
+                        q++;
+                        while (e2 < N - 1 &&  onv.isOccupied(q)) {
                             // see previous
-                            address += this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 1) - this->fock_space.get_vertex_weights(onv.get_occupied_index(e2) + 1, e2 + 2);
+                            address += this->fock_space.get_vertex_weights(q, e2 + 1) - this->fock_space.get_vertex_weights(q, e2 + 2);
                             e2++;
+                            q++;
                         }
-                        q = onv.get_occupied_index(e2) + 1;
                         e2++;
                     }
                 }  //  (creation)

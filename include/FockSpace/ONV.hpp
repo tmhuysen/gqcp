@@ -194,6 +194,7 @@ public:
      * @return std::string containing the ONV representation
      */
     std::string asString() const;
+
 };
 
 

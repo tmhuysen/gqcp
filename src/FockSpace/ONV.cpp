@@ -117,12 +117,7 @@ void ONV::updateOccupationIndices() {
  *  @param p is counted from right to left
  */
 bool ONV::isOccupied(size_t p) const {
-
-    if (p > this->K-1) {
-        throw std::invalid_argument("The index is out of the bitset bounds");
-    }
-    size_t operator_string = 1U << p;
-    return this->unsigned_representation & operator_string;
+    return this->unsigned_representation & 1U << p;
 }
 
 
