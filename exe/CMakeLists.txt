@@ -3,7 +3,6 @@
 # For every *.cpp-file (every file corresponding to an executable) ...
 foreach(EXE_SOURCE ${PROJECT_EXE_SOURCE_FILES})
 
-    add_compile_options("-lbenchmark")
     link_libraries("-lbenchmark")
 
     # ... extract the filename without extension (NAME_WE) as a name for our executable ...

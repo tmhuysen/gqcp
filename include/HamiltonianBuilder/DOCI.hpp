@@ -104,7 +104,7 @@ public:
                 size_t q = p+1;
 
                 // Test whether next orbital is occupied, until we reach unoccupied orbital
-                while (e2 < N - 1 && onv.isOccupied(q)) {
+                while (e2 < N - 1 && q == onv(e2+1)) {
                     // Shift the address for the electrons encountered after the annihilation but before the creation
                     // Their currents weights are no longer correct, the corresponding weights can be calculated
                     // initial weight can be found in the addressing scheme, on the index of the orbital (row) and electron count (column)
@@ -130,10 +130,10 @@ public:
 
                     // if we encounter an occupied orbital, perform the shift, and test whether the following orbitals are occupied (or not)
                     // then proceed to set q to the next non-occupied orbital.
-                    if (e2 < N && onv.isOccupied(q)) {
+                    if (e2 < N && q == onv(e2)) {
                         address += this->fock_space.get_vertex_weights(q, e2) - this->fock_space.get_vertex_weights(q, e2 + 1);
                         q++;
-                        while (e2 < N - 1 &&  onv.isOccupied(q)) {
+                        while (e2 < N - 1 &&  q == onv(e2+1)) {
                             // see previous
                             address += this->fock_space.get_vertex_weights(q, e2 + 1) - this->fock_space.get_vertex_weights(q, e2 + 2);
                             e2++;
