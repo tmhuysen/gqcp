@@ -40,8 +40,7 @@ before_install:
         bash $HOME/download/miniconda.sh -b -p ${HOME}/miniconda;
       fi
 
-# Install general dependencies
-install:
+
 
     # Configure conda
     - source $HOME/miniconda/bin/activate
@@ -95,10 +94,11 @@ install:
     - mkdir build && cd build
     - cmake .. && make -j3 && make test ARGS=-j3 && sudo make install
 
+
+
 # Run the build script
 script:
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir build && cd build
   - cmake ..
-  - make -j3 && make test ARGS=-j3 && sudo make install
 
