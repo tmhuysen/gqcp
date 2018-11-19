@@ -225,24 +225,5 @@ void FockSpace::set(ONV& onv, size_t address) const {
  *  @return the shift in address resulting from the difference in the corrected electron weights
  */
 
-size_t FockSpace::shiftUntilNextUnoccupiedOrbital(const ONV& onv, size_t& q, size_t& e, size_t a) const {
-
-    size_t address_shift = 0;
-    // Test whether the current orbital index is occupied
-    while (e < this->N && q == onv.get_occupied_index(e)) {
-
-        // Take the difference of vertex weights for the encountered electron weights to that of a vertex weight path with "a" fewer electrons
-        // +1 is added to the electron index, because of how the addressing scheme is arrayed.
-        address_shift += this->get_vertex_weights(q, e + 1 - a) - this->get_vertex_weights(q, e + 1);
-
-        // move to the next electron and orbital
-        e++;
-        q++;
-    }
-
-    return address_shift;
-}
-
-
 
 }  // namespace GQCP

@@ -36,10 +36,12 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
     for (int i = 15; i <= 24; ++i){
           b->Args({i, i/2});
     }
+    b->Args({20, 7});
+    b->Args({28, 7});
 }
 
 // Perform the benchmarks
-BENCHMARK(matvec)->Unit(benchmark::kMillisecond)->Apply(CustomArguments);
+BENCHMARK(matvec)->Apply(CustomArguments);
 
 
 BENCHMARK_MAIN();

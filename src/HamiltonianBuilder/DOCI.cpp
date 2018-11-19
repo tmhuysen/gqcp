@@ -74,7 +74,7 @@ Eigen::MatrixXd DOCI::constructHamiltonian(const HamiltonianParameters& hamilton
             size_t q = p + 1;
 
             // perform a shift
-            address += this->fock_space.shiftUntilNextUnoccupiedOrbital(onv, q, e2, 1);
+            this->fock_space.shiftUntilNextUnoccupiedOrbital<1>(onv, address, q, e2);
 
             while (q < K) {
                 size_t J = address + this->fock_space.get_vertex_weights(q, e2);
@@ -85,7 +85,7 @@ Eigen::MatrixXd DOCI::constructHamiltonian(const HamiltonianParameters& hamilton
                 q++;  // go to the next orbital
 
                 // perform a shift
-                address += this->fock_space.shiftUntilNextUnoccupiedOrbital(onv, q, e2, 1);
+                this->fock_space.shiftUntilNextUnoccupiedOrbital<1>(onv, address, q, e2);
 
             }  // (creation)
 
@@ -126,6 +126,10 @@ Eigen::VectorXd DOCI::matrixVectorProduct(const HamiltonianParameters& hamiltoni
     // Diagonal contributions
     Eigen::VectorXd matvec = diagonal.cwiseProduct(x);
 
+    size_t p;
+    size_t q;
+    size_t e2;
+
     for (size_t I = 0; I < dim; I++) {  // I loops over all the addresses of the onv
 
         // double_I and J reduce vector accessing and writing
@@ -133,18 +137,19 @@ Eigen::VectorXd DOCI::matrixVectorProduct(const HamiltonianParameters& hamiltoni
         double double_J = x(I);
 
         for (size_t e1 = 0; e1 < N; e1++) {  // e1 (electron 1) loops over the (number of) electrons
-            size_t p = onv.get_occupied_index(e1);  // retrieve the index of a given electron
+            p = onv.get_occupied_index(e1);  // retrieve the index of a given electron
 
             // Remove the weight from the initial address I, because we annihilate
             size_t address = I - this->fock_space.get_vertex_weights(p, e1 + 1);
             // The e2 iteration counts the amount of encountered electrons for the creation operator
             // We only consider greater addresses than the initial one (because of symmetry)
             // Hence we only count electron after the annihilated electron (e1)
-            size_t e2 = e1 + 1;
-            size_t q = p + 1;
+            e2 = e1 + 1;
+            q = p + 1;
 
             // perform a shift
-            address += this->fock_space.shiftUntilNextUnoccupiedOrbital(onv, q, e2, 1);
+            this->fock_space.shiftUntilNextUnoccupiedOrbital<1>(onv, address, q, e2);
+
 
             while (q < K) {
                 size_t J = address + this->fock_space.get_vertex_weights(q, e2);
@@ -155,7 +160,7 @@ Eigen::VectorXd DOCI::matrixVectorProduct(const HamiltonianParameters& hamiltoni
                 q++;  // go to the next orbital
 
                 // perform a shift
-                address += this->fock_space.shiftUntilNextUnoccupiedOrbital(onv, q, e2, 1);
+                this->fock_space.shiftUntilNextUnoccupiedOrbital<1>(onv, address, q, e2);
 
             }  // (creation)
 
