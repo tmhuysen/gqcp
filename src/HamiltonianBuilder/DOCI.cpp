@@ -16,7 +16,7 @@
 // along with GQCG-gqcp.  If not, see <http://www.gnu.org/licenses/>.
 // 
 #include "HamiltonianBuilder/DOCI.hpp"
-
+#include <omp.h>
 
 namespace GQCP {
 
@@ -120,62 +120,86 @@ Eigen::VectorXd DOCI::matrixVectorProduct(const HamiltonianParameters& hamiltoni
     size_t dim = this->fock_space.get_dimension();
 
     // Create the first spin string. Since in DOCI, alpha == beta, we can just treat them as one and multiply all contributions by 2
-    ONV onv = this->fock_space.get_ONV(0);  // spin string with address
     size_t N = this->fock_space.get_N();
 
     // Diagonal contributions
-    Eigen::VectorXd matvec = diagonal.cwiseProduct(x);
+    Eigen::VectorXd matvec_main = diagonal.cwiseProduct(x);
 
-    size_t p;
-    size_t q;
-    size_t e2;
+    // We approximate the amount of "hits" to the area of the upper diagonal
+    // X = (2 + sqrt(4-4F))/2F
+    // Meaning that for 1/4 of the area X has to be 7.4641016
+    // meaning that first thread will account for dim/7.4641016 first addresses
+    omp_set_num_threads(8);
+    double nthread = 8;
+    #pragma omp parallel
+    {
+        //double nthread = 4;
+        double ID =  static_cast<double>(omp_get_thread_num());
+        double fraction_start =(ID)/nthread;
+        double fraction_end = (ID+1.0)/nthread;
+        size_t start;
 
-    for (size_t I = 0; I < dim; I++) {  // I loops over all the addresses of the onv
-
-        // double_I and J reduce vector accessing and writing
-        double double_I = 0;
-        double double_J = x(I);
-
-        for (size_t e1 = 0; e1 < N; e1++) {  // e1 (electron 1) loops over the (number of) electrons
-            p = onv.get_occupied_index(e1);  // retrieve the index of a given electron
-
-            // Remove the weight from the initial address I, because we annihilate
-            size_t address = I - this->fock_space.get_vertex_weights(p, e1 + 1);
-            // The e2 iteration counts the amount of encountered electrons for the creation operator
-            // We only consider greater addresses than the initial one (because of symmetry)
-            // Hence we only count electron after the annihilated electron (e1)
-            e2 = e1 + 1;
-            q = p + 1;
-
-            // perform a shift
-            this->fock_space.shiftUntilNextUnoccupiedOrbital<1>(onv, address, q, e2);
+        if(ID == 0){
+            start=0;
+        }else{
+            double x_start = (2 + std::sqrt(4-4*fraction_start))/(2*fraction_start);
+            start = dim/x_start;
+        }
+        double x_end = (2 + std::sqrt(4-4*fraction_end))/(2*fraction_end);
 
 
-            while (q < K) {
-                size_t J = address + this->fock_space.get_vertex_weights(q, e2);
+        size_t end = dim/x_end;
+        size_t size = dim-start;
+        Eigen::VectorXd matvec = Eigen::VectorXd::Zero(size);
+        ONV onv = this->fock_space.get_ONV(start);  // spin string with address
+        for (size_t I = start; I < end; I++) {  // I loops over all the addresses of the onv
 
-                double_I += hamiltonian_parameters.get_g()(p, q, p, q) * x(J);
-                matvec(J) += hamiltonian_parameters.get_g()(p, q, p, q) * double_J;
+            // double_I and J reduce vector accessing and writing
+            double double_I = 0;
+            double double_J = x(I);
 
-                q++;  // go to the next orbital
+            for (size_t e1 = 0; e1 < N; e1++) {  // e1 (electron 1) loops over the (number of) electrons
+                size_t p = onv.get_occupied_index(e1);  // retrieve the index of a given electron
+
+                // Remove the weight from the initial address I, because we annihilate
+                size_t address = I - this->fock_space.get_vertex_weights(p, e1 + 1);
+                // The e2 iteration counts the amount of encountered electrons for the creation operator
+                // We only consider greater addresses than the initial one (because of symmetry)
+                // Hence we only count electron after the annihilated electron (e1)
+                size_t e2 = e1 + 1;
+                size_t q = p + 1;
 
                 // perform a shift
                 this->fock_space.shiftUntilNextUnoccupiedOrbital<1>(onv, address, q, e2);
 
-            }  // (creation)
 
-        } // e1 loop (annihilation)
+                while (q < K) {
+                    size_t J = address + this->fock_space.get_vertex_weights(q, e2);
 
-        // Prevent last permutation
-        if (I < dim - 1) {
-            this->fock_space.setNext(onv);
-        }
+                    double_I += hamiltonian_parameters.get_g()(p, q, p, q) * x(J);
+                    matvec(J-start) += hamiltonian_parameters.get_g()(p, q, p, q) * double_J;
 
-        matvec(I) += double_I;
+                    q++;  // go to the next orbital
 
-    }  // address (I) loop
+                    // perform a shift
+                    this->fock_space.shiftUntilNextUnoccupiedOrbital<1>(onv, address, q, e2);
 
-    return matvec;
+                }  // (creation)
+
+            } // e1 loop (annihilation)
+
+            // Prevent last permutation
+            if (I < dim - 1) {
+                this->fock_space.setNext(onv);
+            }
+
+            matvec(I-start) += double_I;
+
+        }  // address (I) loop
+#pragma omp critical
+       matvec_main.tail(size) += matvec;
+    }
+    return matvec_main;
 }
 
 

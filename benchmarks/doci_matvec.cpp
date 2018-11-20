@@ -33,15 +33,21 @@ static void matvec(benchmark::State& state) {
 
 
 static void CustomArguments(benchmark::internal::Benchmark* b) {
-    for (int i = 15; i <= 24; ++i){
-          b->Args({i, i/2});
-    }
-    b->Args({20, 7});
+    b->Args({10, 7});
+    b->Args({11, 7});
+    b->Args({12, 7});
     b->Args({28, 7});
+    b->Args({28, 8});
+    b->Args({28, 9});
+    b->Args({28, 10});
+    b->Args({28, 11});
+    b->Args({28, 12});
+    b->Args({28, 13});
+    b->Args({28, 14});
 }
 
 // Perform the benchmarks
-BENCHMARK(matvec)->Apply(CustomArguments);
+BENCHMARK(matvec)->Unit(benchmark::kMillisecond)->Apply(CustomArguments);
 
 
 BENCHMARK_MAIN();
