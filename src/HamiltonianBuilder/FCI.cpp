@@ -400,13 +400,76 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
         }
         for (size_t e1 = 0; e1 < N_alpha; e1++) {
             size_t p = aaa.get_occupied_index(e1);  // retrieve the index of a given electron
+            // inplace anni-crea
+            for (size_t e21 = e1 +1; e21 < N_alpha; e21++){
+                size_t r1 = aaa.get_occupied_index(e21);
+
+                // diagonal
+                double value_diagonal = hamiltonian_parameters.get_g()(p, p, r1, r1) +  hamiltonian_parameters.get_g()(p, r1, r1, p);
+                for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
+                    // omit 0.5 modifier, because r1>p
+                    matvec(I_alpha*dim_beta + I_beta) +=  value_diagonal * x(I_alpha*dim_beta + I_beta);
+                }
+                // end diagonal (note the rest of the diagonal is done by the effective one electron operator)
+
+                size_t address1 = I_alpha - fock_space_alpha.get_vertex_weights(r1, e1 + 1);
+
+                size_t e3 = e21 + 1;
+                size_t s1 = r1 + 1;
+
+                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address1, s1, e3);
+
+                while (s1 < K) {
+                    size_t J = address1 + fock_space_alpha.get_vertex_weights(s1, e3);
+
+                    double value = 0.5 * (hamiltonian_parameters.get_g()(p, p, r1, s1) - hamiltonian_parameters.get_g()(p, s1, r1, p));
+                    for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
+                        matvec(J*dim_beta + I_beta) +=  value * x(I_alpha*dim_beta + I_beta);
+                        matvec(I_alpha*dim_beta + I_beta) +=  value * x(J*dim_beta + I_beta);
+                    }
+
+                    s1++;  // go to the next orbital
+
+                    // perform a shift
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address1, s1, e3);
+
+                }  // (creation)
+
+            }
+
+
+
+            // legit
             size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
 
             size_t e2 = e1 + 1;
-            size_t q = p;
+            size_t q = p + 1;
+
+            fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2);
 
             while (q < K) {
-                size_t J = address + fock_space_alpha.get_vertex_weights(q, e2);
+
+                // inplace crea-anni
+                size_t s2 = q+1;
+                size_t e3 = e2;
+                size_t addressX = address;
+                while( s2 < K ) {
+                    size_t JJ = addressX + fock_space_alpha.get_vertex_weights(s2, e3);
+                    //mvec
+                    s2++;
+
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addressX, s2, e3);
+                }
+
+                size_t address2 = address + fock_space_alpha.get_vertex_weights(q, e2);
+                q++;
+                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2);
+
+                for (size_t e32 = e2 + 1; e32<N_alpha; e32++){
+
+
+                }
+
 
 
             }
