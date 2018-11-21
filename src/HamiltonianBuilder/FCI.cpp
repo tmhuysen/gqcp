@@ -267,7 +267,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
 
     FockSpace fock_space_alpha = fock_space.get_fock_space_alpha();
     FockSpace fock_space_beta = fock_space.get_fock_space_beta();
-
+    size_t N_alpha = fock_space_alpha.get_N();
     auto dim_alpha = fock_space_alpha.get_dimension();
     auto dim_beta = fock_space_beta.get_dimension();
     auto dim = fock_space.get_dimension();
@@ -347,6 +347,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
     }  // I_beta loop
 
     // ALPHA-ALPHA-ALPHA-ALPHA
+    /*
     ONV spin_string_alpha_aaaa = fock_space_alpha.get_ONV(0);  // spin string with address 0
     for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {  // I_alpha loops over all addresses of alpha spin strings
         if (I_alpha > 0) {
@@ -390,7 +391,89 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
             }
         }  // loop over p
     }  // loop over I_alpha
+    */
 
+    ONV aaa = fock_space_alpha.get_ONV(0);  // spin string with address 0
+    for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {  // I_alpha loops over all addresses of alpha spin strings
+        if (I_alpha > 0) {
+            fock_space_alpha.setNext(aaa);
+        }
+        for (size_t e1 = 0; e1 < N_alpha; e1++) {
+            size_t p = aaa.get_occupied_index(e1);  // retrieve the index of a given electron
+            size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
+
+            size_t e2 = e1 + 1;
+            size_t q = p;
+
+            while (q < K) {
+                size_t J = address + fock_space_alpha.get_vertex_weights(q, e2);
+
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            /*
+            for (size_t e2 = e1+1; e2 < N_alpha; e2++){
+                size_t q = aaa.get_occupied_index(e2);
+                size_t address2 = address - fock_space_alpha.get_vertex_weights(q, e2 + 1);
+
+                size_t r = p;
+                size_t e31 = e1 + 1;
+                while (r < q) {
+                    size_t address3 = address2 + fock_space_alpha.get_vertex_weights(q, e31);
+                    r++;
+
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address2, r, e31);
+
+                    size_t s = r+1;
+                    size_t e4 = e31 + 1;
+                    while(s < q) {
+                        size_t J_alpha = address3 + fock_space_alpha.get_vertex_weights(q, e4);
+                        int sign_pqrs = 1;
+                        for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
+
+                            double value = hamiltonian_parameters.get_g()(p, q, r, s);
+                            matvec(I_alpha*dim_beta + I_beta) += 0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs * x(J_alpha*dim_beta + I_beta);
+                            matvec(J_alpha*dim_beta + I_beta) += 0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs * x(I_alpha*dim_beta + I_beta);
+                        }
+
+                        s++;
+
+
+
+                    }
+
+
+                }
+
+
+            }
+            */
+
+
+        }
+
+
+    }
 
     // ALPHA-ALPHA-BETA-BETA (and BETA-BETA-ALPHA-ALPHA)
     ONV spin_string_alpha_aabb = fock_space_alpha.get_ONV(0);  // spin string with address 0

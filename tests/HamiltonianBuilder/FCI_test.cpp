@@ -62,3 +62,5 @@ BOOST_AUTO_TEST_CASE ( FCI_public_methods ) {
     BOOST_CHECK_THROW(random_fci_i.constructHamiltonian(random_hamiltonian_parameters), std::invalid_argument);
     BOOST_CHECK_THROW(random_fci_i.matrixVectorProduct(random_hamiltonian_parameters, x, x), std::invalid_argument);
 }
+
+
