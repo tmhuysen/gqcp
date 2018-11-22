@@ -172,6 +172,22 @@ public:
             sign *= -1;
         }
     }
+
+    void sbu(const ONV& onv, size_t& address, size_t& q, size_t& e, int& sign) const {
+
+        // Test whether the current orbital index is occupied
+        while (e >= 0 && q == onv.get_occupied_index(e)) {
+
+            // Take the difference of vertex weights for the encountered electron weights to that of a vertex weight path with more electrons
+            // +1 is added to the electron index, because of how the addressing scheme is arrayed.
+            address += this->get_vertex_weights(q, e + 1) - this->get_vertex_weights(q, e);
+
+            // move to the next electron and orbital
+            e--;
+            q--;
+            sign *= -1;
+        }
+    }
 };
 
 

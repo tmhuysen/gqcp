@@ -393,6 +393,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
     }  // loop over I_alpha
     */
 
+
     ONV aaa = fock_space_alpha.get_ONV(0);  // spin string with address 0
     for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {  // I_alpha loops over all addresses of alpha spin strings
         if (I_alpha > 0) {
@@ -404,14 +405,15 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
             for (size_t e21 = e1 +1; e21 < N_alpha; e21++){
                 size_t r1 = aaa.get_occupied_index(e21);
 
-                // diagonal
-                double value_diagonal = hamiltonian_parameters.get_g()(p, p, r1, r1) +  hamiltonian_parameters.get_g()(p, r1, r1, p);
+                // diagonal in place
+                double value_diagonal = hamiltonian_parameters.get_g()(p, p, r1, r1) + hamiltonian_parameters.get_g()(p, r1, r1, p);
                 for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
                     // omit 0.5 modifier, because r1>p
                     matvec(I_alpha*dim_beta + I_beta) +=  value_diagonal * x(I_alpha*dim_beta + I_beta);
                 }
                 // end diagonal (note the rest of the diagonal is done by the effective one electron operator)
 
+                // A2C2 pair
                 size_t address1 = I_alpha - fock_space_alpha.get_vertex_weights(r1, e1 + 1);
 
                 size_t e3 = e21 + 1;
@@ -437,13 +439,51 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
 
             }
 
+            // 3 BRANCHES : C1 < A1, C2 > A2
+            //            : A1 < C1 < A2, C2 > A2
+            //            : A1 < A2 < C1, C2 > C1
+
 
 
             // legit
             size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
+            size_t addback = address;
+            size_t em = e1;
+            size_t q = p-1;
+            int dummy = 1;
+            fock_space_alpha.sbu(aaa, addback, q, em, dummy);
+            while (q >= 0) {
+                size_t add2 = addback + fock_space_alpha.get_vertex_weights(q, em +1);
+
+                q--;
+
+
+
+                fock_space_alpha.sbu(aaa, addback, q, em, dummy);
+
+                //A2
+                for (size_t e22 = e1+1; e22 < N_alpha; e22++ ){
+                    size_t r = aaa.get_occupied_index(e22);
+                    size_t add3 = add2 - fock_space_alpha.get_vertex_weights(r, e22 +1);
+
+                    size_t e4 = e22 + 1;
+                    size_t s = r + 1;
+
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, add3, s, e4);
+
+                    while (s < K) {
+                        size_t J = add3 + fock_space_alpha.get_vertex_weights(s, e4);
+                        //matvecer
+                        s++;
+                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, add3, s, e4);
+
+                    }
+                }
+
+            }
 
             size_t e2 = e1 + 1;
-            size_t q = p + 1;
+            q = p + 1;
 
             fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2);
 
@@ -466,6 +506,10 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                 fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2);
 
                 for (size_t e32 = e2 + 1; e32<N_alpha; e32++){
+
+
+
+
 
 
                 }
