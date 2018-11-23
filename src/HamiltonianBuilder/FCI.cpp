@@ -501,6 +501,16 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                     fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addressX, s2, e3);
                 }
 
+                size_t addressT = address + fock_space_alpha.get_vertex_weights(q, e2);
+
+                size_t ci = q;
+                for(size_t eb = e2; eb > e1; eb--){
+                    addressT =  fock_space_alpha.get_vertex_weights(ci, eb) - fock_space_alpha.get_vertex_weights(ci, eb + 1);
+
+
+                }
+
+
                 size_t address2 = address + fock_space_alpha.get_vertex_weights(q, e2);
                 q++;
                 fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2);
