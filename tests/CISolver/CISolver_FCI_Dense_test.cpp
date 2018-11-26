@@ -223,14 +223,14 @@ BOOST_AUTO_TEST_CASE ( temp_remove ) {
 
     // Create the FCI module
     GQCP::FCI fci (fock_space);
-
+    size_t dim = fock_space.get_dimension();
     Eigen::MatrixXd lol = fci.constructHamiltonian(mol_ham_par);
-
-    std::cout<<std::endl<<std::endl<<std::endl<<fock_space.get_dimension()<<std::endl<<std::endl;
+    std::setprecision(16);
+    std::cout<<std::endl<<std::endl<<std::endl<<dim<<std::endl<<std::endl;
     std::cout<<std::endl<<std::endl<<std::endl<<lol<<std::endl<<std::endl;
 
 
-    Eigen::MatrixXd ref;
+    Eigen::MatrixXd ref (dim, dim);
     ref  <<-1.8361, 2.96955e-16, -7.21661e-10, 3.0458e-16, 3.31458e-16, 0.0891952, 1.10902e-16, -0.0801081, -7.21661e-10, 5.27325e-17, 0.114139, -9.46422e-17, 2.91199e-16, -0.0801081, -1.30426e-16, 0.13103,
             1.1415e-16, -1.34687, -1.564e-16, 0.0633318, 0.0891952, 2.25686e-16, 0.0165886, -1.00424e-16, -2.23283e-17, 0.11062, 3.51043e-17, 0.0776359, -0.0801081, 2.66001e-16, 0.027085, -1.2474e-17,
             -7.21662e-10, -4.68548e-16, -0.769117, 7.14858e-18, 6.15338e-17, 0.0165886, 3.05136e-16, 0.0934865, 0.114139, 4.32438e-17, 0.0336686, 1.73652e-16, -6.77947e-17, 0.027085, 3.65912e-16, -0.125688,
@@ -248,6 +248,49 @@ BOOST_AUTO_TEST_CASE ( temp_remove ) {
             -4.89965e-17, 0.027085, 3.49858e-16, -0.125688, 0.0776359, 2.31746e-16, 0.0984222, -6.81009e-16, 2.49066e-16, -0.00742553, -2.51674e-16, 0.141629, -0.0368746, -3.47255e-16, 0.820971, -6.81747e-16,
             0.13103, 3.76109e-18, -0.125688, 2.49672e-16, 2.78485e-16, 0.0718078, -3.0117e-16, 0.0362564, -0.125688, 5.89543e-18, 0.141629, -1.8689e-16, 4.72653e-16, 0.0362564, -5.17765e-16, 1.38865;
 
-    BOOST_CHECK(ref.isApprox(lol));
+
+    Eigen::VectorXd test_x = Eigen::VectorXd::Ones(dim);
+
+    Eigen::VectorXd mv = ref*test_x;
+
+    std::cout<<std::endl<<mv;
+
+    Eigen::VectorXd dc = fci.matrixVectorProduct(mol_ham_par, test_x, test_x);
+
+    BOOST_CHECK(ref.isApprox(lol, 10e-4));
 }
 
+
+
+
+BOOST_AUTO_TEST_CASE ( temp_remove_2 ) {
+
+    // Psi4 and GAMESS' FCI energy
+    double reference_fci_energy = -75.0129803939602;
+
+    // Create a Molecule and an AOBasis
+    GQCP::Molecule h2o ("../tests/data/h2o_Psi4_GAMESS.xyz");
+    auto ao_basis = std::make_shared<GQCP::AOBasis>(h2o, "STO-3G");
+
+    // Create the molecular Hamiltonian parameters for this molecule and basis
+    auto mol_ham_par = GQCP::constructMolecularHamiltonianParameters(ao_basis);
+    auto K = mol_ham_par.get_K();
+
+    // Create a plain RHF SCF solver and solve the SCF equations
+    GQCP::PlainRHFSCFSolver plain_scf_solver (mol_ham_par, h2o);
+    plain_scf_solver.solve();
+    auto rhf = plain_scf_solver.get_solution();
+
+    // Transform the ham_par
+    mol_ham_par.transform(rhf.get_C());
+
+    GQCP::ProductFockSpace fock_space (K, h2o.get_N()/2, h2o.get_N()/2);  // dim = 441
+
+    // Create the FCI module
+    GQCP::FCI fci (fock_space);
+    size_t dim = fock_space.get_dimension();
+    Eigen::VectorXd test_x = Eigen::VectorXd::Ones(dim);
+    std::cout<<fci.matrixVectorProduct(mol_ham_par, test_x, test_x);
+
+    BOOST_CHECK(true);
+}
