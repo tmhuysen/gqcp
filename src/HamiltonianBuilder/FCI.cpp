@@ -406,11 +406,24 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
         if (I_alpha > 0) {
             fock_space_alpha.setNext(aaa);
         }
-        for (size_t e1 = 0; e1 < N_alpha; e1++) {
 
+        int sign1 = -1;
+        for (size_t e1 = 0; e1 < N_alpha; e1++) {
+            sign1 *= -1;
             size_t p = aaa.get_occupied_index(e1);  // retrieve the index of a given electron
+            // diagonal in place
+            double value_diagonal_p =
+                    hamiltonian_parameters.get_g()(p, p, p, p);
+            for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
+                // omit 0.5 modifier, because r1>p
+                matvec(I_alpha * dim_beta + I_beta) += value_diagonal_p * x(I_alpha * dim_beta + I_beta);
+            }
+
+
             // inplace anni-crea
+
             for (size_t e21 = e1 + 1; e21 < N_alpha; e21++) {
+
                 size_t r1 = aaa.get_occupied_index(e21);
 
                 // diagonal in place
@@ -426,13 +439,13 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                 //std::cout<<"this be address1:"<<address1<<std::endl;
                 size_t e3 = e21 + 1;
                 size_t s1 = r1 + 1;
-
-                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address1, s1, e3);
+                int sign3 = 1;
+                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address1, s1, e3, sign3);
 
                 while (s1 < K) {
                     size_t J = address1 + fock_space_alpha.get_vertex_weights(s1, e3);
                   //  std::cout<<"this be J:"<<J<<std::endl;
-                    double value = 0.5 * (hamiltonian_parameters.get_g()(p, p, r1, s1) -
+                    double value = sign3 * 0.5 * (hamiltonian_parameters.get_g()(p, p, r1, s1) -
                                           hamiltonian_parameters.get_g()(p, s1, r1, p));
                     for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
                         matvec(J * dim_beta + I_beta) += value * x(I_alpha * dim_beta + I_beta);
@@ -442,42 +455,49 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                     s1++;  // go to the next orbital
 
                     // perform a shift
-                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address1, s1, e3);
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address1, s1, e3, sign3);
 
                 }  // (creation)
 
             }
 
+
+
+
             size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
             size_t addback = address;
             size_t em = e1;
             size_t q = p;
-            int dummy = 1;
+            int sign2 = sign1;
             while (q > 0) {
                 q--;
-                fock_space_alpha.sbu(aaa, addback, q, em, dummy);
+                fock_space_alpha.sbu(aaa, addback, q, em, sign2);
                 size_t add2 = addback + fock_space_alpha.get_vertex_weights(q, em + 1);
 
                 //A2
+                int sign3 = sign1;
                 for (size_t e22 = e1+1; e22 < N_alpha; e22++ ){
+                    sign3 *= -1;  // initial sign3 = sign of the annhilation, with one extra electron(from crea) = *-1
                     size_t r = aaa.get_occupied_index(e22);
                     size_t add3 = add2 - fock_space_alpha.get_vertex_weights(r, e22 +1);
 
                     size_t e4 = e22 + 1;
                     size_t s = r + 1;
 
-                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, add3, s, e4);
+                    int sign4 = sign3;
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, add3, s, e4, sign4);
 
                     while (s < K) {
                         size_t J = add3 + fock_space_alpha.get_vertex_weights(s, e4);
                         //std::cout<<std::endl<<" WAaaaaAaAaAaaJ :"<<J<<std::endl;
-                        double value = 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) + hamiltonian_parameters.get_g()(r, s, p, q) - hamiltonian_parameters.get_g()(p, s, r, q) -  hamiltonian_parameters.get_g()(r, q, p, s));
+                        int signev = sign1*sign2*sign3*sign4;
+                        double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) + hamiltonian_parameters.get_g()(r, s, p, q) - hamiltonian_parameters.get_g()(p, s, r, q) -  hamiltonian_parameters.get_g()(r, q, p, s));
                         for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
                             matvec(J*dim_beta + I_beta) +=  value * x(I_alpha*dim_beta + I_beta);
                             matvec(I_alpha*dim_beta + I_beta) +=  value * x(J*dim_beta + I_beta);
                         }
                         s++;
-                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, add3, s, e4);
+                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, add3, s, e4, sign4);
 
                     }
                 }
@@ -492,19 +512,40 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
 
             size_t e2 = e1 + 1;
             q = p + 1;
-
-            fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2);
+            sign2 = sign1;
+            fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2, sign2);
             //std::cout<<"E2:"<<e2<<std::endl;
+            //ANNI-CREA-ANNI
+            size_t ss = q;
+            size_t ee = e2;
+            size_t addy = address;
+            int sign44 = sign2;
+            while (ss < K) {
+                size_t J = addy + fock_space_alpha.get_vertex_weights(ss, ee);
+                int signev = sign1*sign44;
+                double value = signev * 0.5 * hamiltonian_parameters.get_g()(p, p, p, ss);
+                for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
+                    matvec(J*dim_beta + I_beta) +=  value * x(I_alpha*dim_beta + I_beta);
+                    matvec(I_alpha*dim_beta + I_beta) +=  value * x(J*dim_beta + I_beta);
+                }
+                ss++;
+                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addy, ss, ee, sign44);
+
+            }
+
+            // END ANNI-CREA-ANNI
+
             //C1
             while (q < K) {
 
-                // inplace crea-anni
+                // BRANCH N
 
 
                 size_t addressT = address + fock_space_alpha.get_vertex_weights(q, e2);
                 size_t address2 = addressT;
-
+                int sign3 = sign2;
                 for(size_t ec = e2; ec < N_alpha; ec++) {
+                    sign3 *= -1; // -1 cause we created electron (creation) sign of A is now the that of C *-1
                     size_t r = aaa.get_occupied_index(ec);
                     size_t address99 = address2 - fock_space_alpha.get_vertex_weights(r, ec);
 
@@ -512,12 +553,14 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                     size_t s = r + 1;
 
                     // perform a shift
-                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address99, s, e34);
+                    int sign4 = sign3;
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address99, s, e34, sign4);
 
                     while (s < K) {
                         size_t J = address + fock_space_alpha.get_vertex_weights(s, e34);
+                        int signev = sign1*sign2*sign3*sign4;
 
-                        double value = 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) + hamiltonian_parameters.get_g()(r, s, p, q) - hamiltonian_parameters.get_g()(r, q, p, s) -  hamiltonian_parameters.get_g()(p, s, r, q));
+                        double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) + hamiltonian_parameters.get_g()(r, s, p, q) - hamiltonian_parameters.get_g()(r, q, p, s) -  hamiltonian_parameters.get_g()(p, s, r, q));
                         for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
                             matvec(J*dim_beta + I_beta) +=  value * x(I_alpha*dim_beta + I_beta);
                             matvec(I_alpha*dim_beta + I_beta) +=  value * x(J*dim_beta + I_beta);
@@ -526,7 +569,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                         s++;  // go to the next orbital
 
                         // perform a shift
-                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address99, s, e34);
+                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address99, s, e34, sign4);
 
                     }  // (creation)
 
@@ -535,31 +578,39 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                 //std::cout<<std::endl<<" adT"<<addressT<<std::endl;
                 //std::cout<<std::endl<<" q "<<q<<std::endl;
                 size_t ci = q;
-                q++;
-                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2);
+
+                sign3 = sign2;
+
                 //std::cout<<"Q:"<<q<<" ";
                 //std::cout<<"e2:"<<e2<<" ";
                 //std::cout<<"e1:"<<e1<<" ";
                 //std::cout<<"p:"<<p<<" ";
+                // A2 < C1
                 for (size_t eb = e2 - 1; eb > e1; eb--) {
+                    sign3 *= -1;
                     size_t e33 = e2;
                     //std::cout<<std::endl<<" I ALPHA : "<<I_alpha<<std::endl;
                     addressT += fock_space_alpha.get_vertex_weights(ci, eb) -
                                 fock_space_alpha.get_vertex_weights(ci, eb + 1);
                     //std::cout<<std::endl<<" ad2T"<<addressT<<std::endl;
                     ci = aaa.get_occupied_index(eb);
-                    size_t addressR = addressT - fock_space_alpha.get_vertex_weights(ci, eb );
+                    size_t addressR = addressT - fock_space_alpha.get_vertex_weights(ci, eb);
                     //std::cout<< " ADR "<<addressR;
-
-                    size_t s = q;
+                    int sign4 = sign2 *-1;
+                    size_t s = q + 1;
                     //std::cout<<"pre-è33 : "<<e33<<"  ";
-                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addressR, s, e33);
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addressR, s, e33, sign4);
                     while (s < K) {
                         //std::cout<<"S : "<<s<<"  ";
                         //std::cout<<"è33 : "<<e33<<"  ";
                         size_t J = addressR + fock_space_alpha.get_vertex_weights(s, e33);
-                        //std::cout<<std::endl<<" WAaaaaAaAaAaaJ :"<<J<<std::endl;
-                        double value = 0.5 * (hamiltonian_parameters.get_g()(p, q, ci, s) +
+                        /*
+                        std::cout<<std::endl<<" WAaaaaAaAaAaaJ :"<<J<<std::endl;
+                        std::cout<<std::endl<<" WAaaaaAaAaAaaI :"<<I_alpha<<std::endl;
+                        std::cout<<std::endl<<"---------------- :"<<std::endl;
+                         */
+                        int signev = sign1*sign2*sign3*sign4;
+                        double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, ci, s) +
                                               hamiltonian_parameters.get_g()(ci, s, p, q) -
                                               hamiltonian_parameters.get_g()(ci, q, p, s) -
                                               hamiltonian_parameters.get_g()(p, s, ci, q));
@@ -578,22 +629,29 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                 }
 
 
-
                 // inplace crea-anni
                 size_t s2 = q;
                 size_t e3 = e2;
                 size_t addressX = address;
+
+                int sign45 = sign2;
+
                 while (s2 < K) {
                     size_t J = addressX + fock_space_alpha.get_vertex_weights(s2, e3);
-                    double value = 0.5; //* (hamiltonian_parameters.get_g()(p, q, q, s2));
+                    int signev = sign45 * sign2*sign2 * sign1;
+                    double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, q, s2));
                     for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
                         matvec(J * dim_beta + I_beta) += value * x(I_alpha * dim_beta + I_beta);
                         matvec(I_alpha * dim_beta + I_beta) += value * x(J * dim_beta + I_beta);
                     }
                     s2++;
 
-                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addressX, s2, e3);
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addressX, s2, e3, sign45);
                 }
+
+                q++;
+
+                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2, sign2);
 
 
             }
