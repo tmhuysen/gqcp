@@ -466,13 +466,13 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
 
             size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
             size_t addback = address;
-            size_t em = e1;
-            size_t q = p;
+            int em = e1;
+            int qq = p;
             int sign2 = sign1;
-            while (q > 0) {
-                q--;
-                fock_space_alpha.sbu(aaa, addback, q, em, sign2);
-                size_t add2 = addback + fock_space_alpha.get_vertex_weights(q, em + 1);
+            while (qq > 0) {
+                qq--;
+                fock_space_alpha.sbu(aaa, addback, qq, em, sign2);
+                size_t add2 = addback + fock_space_alpha.get_vertex_weights(qq, em + 1);
 
                 //A2
                 int sign3 = sign1;
@@ -491,7 +491,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
                         size_t J = add3 + fock_space_alpha.get_vertex_weights(s, e4);
                         //std::cout<<std::endl<<" WAaaaaAaAaAaaJ :"<<J<<std::endl;
                         int signev = sign1*sign2*sign3*sign4;
-                        double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) + hamiltonian_parameters.get_g()(r, s, p, q) - hamiltonian_parameters.get_g()(p, s, r, q) -  hamiltonian_parameters.get_g()(r, q, p, s));
+                        double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, qq, r, s) + hamiltonian_parameters.get_g()(r, s, p, qq) - hamiltonian_parameters.get_g()(p, s, r, qq) -  hamiltonian_parameters.get_g()(r, qq, p, s));
                         for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all beta addresses
                             matvec(J*dim_beta + I_beta) +=  value * x(I_alpha*dim_beta + I_beta);
                             matvec(I_alpha*dim_beta + I_beta) +=  value * x(J*dim_beta + I_beta);
@@ -511,7 +511,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
 
 
             size_t e2 = e1 + 1;
-            q = p + 1;
+            size_t q = p + 1;
             sign2 = sign1;
             fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2, sign2);
             //std::cout<<"E2:"<<e2<<std::endl;

@@ -294,3 +294,36 @@ BOOST_AUTO_TEST_CASE ( temp_remove_2 ) {
 
     BOOST_CHECK(true);
 }
+
+
+BOOST_AUTO_TEST_CASE ( temp_remove_3 ) {
+
+    // Psi4 and GAMESS' FCI energy
+    double reference_fci_energy = -75.0129803939602;
+
+    // Create a Molecule and an AOBasis
+    GQCP::Molecule h2o ("../tests/data/h2o_Psi4_GAMESS.xyz");
+    auto ao_basis = std::make_shared<GQCP::AOBasis>(h2o, "STO-3G");
+
+    // Create the molecular Hamiltonian parameters for this molecule and basis
+    auto mol_ham_par = GQCP::constructMolecularHamiltonianParameters(ao_basis);
+    auto K = mol_ham_par.get_K();
+
+    // Create a plain RHF SCF solver and solve the SCF equations
+    GQCP::PlainRHFSCFSolver plain_scf_solver (mol_ham_par, h2o);
+    plain_scf_solver.solve();
+    auto rhf = plain_scf_solver.get_solution();
+
+    // Transform the ham_par
+    mol_ham_par.transform(rhf.get_C());
+
+    GQCP::ProductFockSpace fock_space (K, h2o.get_N()/2, h2o.get_N()/2);  // dim = 441
+
+    // Create the FCI module
+    GQCP::FCI fci (fock_space);
+    std::cout<<std::endl<<fci.test1(mol_ham_par)<<std::endl;
+    std::cout<<std::endl<<fci.test2(mol_ham_par)<<std::endl;
+
+    BOOST_CHECK(true);
+}
+
