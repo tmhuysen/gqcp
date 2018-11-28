@@ -323,7 +323,7 @@ BOOST_AUTO_TEST_CASE ( temp_remove_3 ) {
     GQCP::FCI fci (fock_space);
     std::cout<<std::endl<<fci.test1(mol_ham_par)<<std::endl;
     std::cout<<std::endl<<fci.test2(mol_ham_par)<<std::endl;
-
+    BOOST_CHECK(fci.test1(mol_ham_par).isApprox(fci.test2(mol_ham_par)));
     BOOST_CHECK(true);
 }
 

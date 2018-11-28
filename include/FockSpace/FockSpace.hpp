@@ -180,7 +180,10 @@ public:
 
             // Take the difference of vertex weights for the encountered electron weights to that of a vertex weight path with more electrons
             // +1 is added to the electron index, because of how the addressing scheme is arrayed.
-            address += this->get_vertex_weights(q, e + 1) - this->get_vertex_weights(q, e);
+            int shift = static_cast<int>(this->get_vertex_weights(q, e + 2)) - static_cast<int>(this->get_vertex_weights(q, e + 1));
+            //std::cout<<shift<<"sjift"<<std::endl;
+            address += shift;
+            //std::cout<<address<<"aftershifhouts"<<std::endl;
 
             // move to the next electron and orbital
             e--;
