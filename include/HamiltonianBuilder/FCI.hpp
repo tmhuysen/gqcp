@@ -147,12 +147,15 @@ public:
                                             size_t J_alpha = fock_space_alpha.getAddress(spin_string_alpha_aaaa);  // the address of the string J_alpha that couples to I_alpha
 
 
-                                            mxx(I_alpha, J_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
-                                            mxx(J_alpha, I_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
+                                            //mxx(I_alpha, J_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
+                                            //mxx(J_alpha, I_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
 
-                                            if( 0 && p == s &&  r == q && q < p){
+                                            if( (p == q || p == s) && q != s && I_alpha < J_alpha){
                                                 mxx(I_alpha, J_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
-                                                mxx(J_alpha, I_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
+                                                //mxx(J_alpha, I_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
+                                                //std::cout<<"PQRS"<<p<<q<<r<<s<<" "<<std::endl;
+                                                //std::cout<<"J "<<J_alpha<<" "<<std::endl;
+                                                //std::cout<<"sign "<<sign_pqrs<<std::endl;
 
                                             }
                                             if (I_alpha == J_alpha) {
@@ -211,21 +214,21 @@ public:
                 size_t p = aaa.get_occupied_index(e1);  // retrieve the index of a given electron
                 // diagonal in place
                 double value_diagonal_p =
-                        hamiltonian_parameters.get_g()(p, p, p, p);
+                        0.5 * hamiltonian_parameters.get_g()(p, p, p, p);
 
-                mxx(I_alpha, I_alpha) +=  value_diagonal_p;
+                //mxx(I_alpha, I_alpha) +=  value_diagonal_p;
 
 
-                // inplace anni-crea
+                //////////////// A1=C1
 
-                for (size_t e21 = e1 + 1; e21 < N_alpha; e21++) {
+                for (size_t e21 = 0; e21 < N_alpha; e21++) { /////// A2>A1
 
                     size_t r1 = aaa.get_occupied_index(e21);
 
-                    // diagonal in place
+                    // diagonal in place //////////////// A2=C2
                     double value_diagonal_q =
-                            hamiltonian_parameters.get_g()(p, p, r1, r1);
-                    mxx(I_alpha, I_alpha) += 2* value_diagonal_q;
+                            0.5 * hamiltonian_parameters.get_g()(p, p, r1, r1);
+                    //mxx(I_alpha, I_alpha) +=  value_diagonal_q;
                     // A2C2 pair
 
                     size_t address1 = I_alpha - fock_space_alpha.get_vertex_weights(r1, e21 + 1);
@@ -237,11 +240,22 @@ public:
 
                     while (s1 < K) {
                         size_t J = address1 + fock_space_alpha.get_vertex_weights(s1, e3);
-                        //  std::cout<<"this be J:"<<J<<std::endl;
-                        double value = sign3 * 0.5 * (hamiltonian_parameters.get_g()(p, p, r1, s1) -
-                                                      hamiltonian_parameters.get_g()(p, s1, r1, p));
 
-                        //mxx(I_alpha, J) +=  value;
+                        std::cout<<"PQRS"<<p<<p<<r1<<s1<<" "<<std::endl;
+                         /*
+                        std::cout<<"sign3:" << sign3 << std::endl;
+
+                        std::cout<<"PQRS"<<p<<s1<<r1<<p<<" "<<std::endl;
+                        std::cout<<"sign3$:" << -sign3 << std::endl;
+                        std::cout<<"this be J:"<<J<<std::endl;
+                        */
+                        double value = (hamiltonian_parameters.get_g()(p, p, r1, s1) -
+                                                      hamiltonian_parameters.get_g()(p, s1, r1, p));
+                        if(p == r1) {
+                            value += hamiltonian_parameters.get_g()(p, s1, r1, p);
+                        }
+
+                        mxx(I_alpha, J) += sign3 * 0.5 * value;
                         //mxx(J, I_alpha) +=  value;
 
 
@@ -265,7 +279,7 @@ public:
                 while (qq >= 0) {
 
                     size_t add2 = addback + fock_space_alpha.get_vertex_weights(qq, em + 1);
-                    mxx(I_alpha, I_alpha) += hamiltonian_parameters.get_g()(p, qq, qq, p);
+                    //mxx(I_alpha, I_alpha) += 0.5 * hamiltonian_parameters.get_g()(p, qq, qq, p);
                     //A2
                     int sign3 = sign1;
                     for (size_t e22 = e1 + 1; e22 < N_alpha; e22++) {
@@ -314,7 +328,7 @@ public:
                     size_t J = addy + fock_space_alpha.get_vertex_weights(ss, ee);
                     int signev = sign1 * sign44;
                     double value = signev * 0.5 * hamiltonian_parameters.get_g()(p, p, p, ss);
-                    mxx(I_alpha, I_alpha) += hamiltonian_parameters.get_g()(p, ss, ss, p);
+                    //mxx(I_alpha, I_alpha) += 0.5 * hamiltonian_parameters.get_g()(p, ss, ss, p);
                     //mxx(I_alpha, J) +=  value;
                     //mxx(J, I_alpha) +=  value;
                     ss++;
