@@ -289,14 +289,14 @@ public:
                 size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
                 size_t addcopy = address;
                 size_t addback = address;
-                int em = e1;
-                int qq = p;
+                size_t em = e1;
+                size_t qq = p;
                 ///////////// C1 < A1, A2 > A1 CORRECT
                 int sign2 = sign1;
                 qq--;
                 em--;
                 fock_space_alpha.sbu(aaa, addback, qq, em, sign2);
-                while (qq >= 0) {
+                while (qq != -1) {
 
                     size_t add2 = addback + fock_space_alpha.get_vertex_weights(qq, em + 2);
                     //mxx(I_alpha, I_alpha) += 0.5 * hamiltonian_parameters.get_g()(p, qq, qq, p);
@@ -501,6 +501,260 @@ public:
                             std::cout<<"PQRS "<<p<<s2<<s2<<q<<" "<<signev<<std::endl;
                             mxx(I_alpha, address3) +=  value;
                             mxx(address3, I_alpha) +=  value;
+
+                        }
+
+                    }
+
+                    q++;
+
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2, sign2);
+
+
+                }
+            }
+        }
+
+        return mxx;
+    }
+
+    Eigen::MatrixXd test3(const HamiltonianParameters& hamiltonian_parameters) {
+
+        auto K = hamiltonian_parameters.get_h().get_dim();
+        FockSpace fock_space_alpha = fock_space.get_fock_space_alpha();
+        FockSpace fock_space_beta = fock_space.get_fock_space_beta();
+        size_t N_alpha = fock_space_alpha.get_N();
+        auto dim_alpha = fock_space_alpha.get_dimension();
+        auto dim_beta = fock_space_beta.get_dimension();
+        auto dim = fock_space.get_dimension();
+
+        Eigen::MatrixXd mxx = Eigen::MatrixXd::Zero(dim_alpha, dim_alpha);
+        std::cout<<"--------------------------------------------------------------------"<<std::endl;
+
+        ONV aaa = fock_space_alpha.get_ONV(0);  // spin string with address 0
+        for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {  // I_alpha loops over all addresses of alpha spin strings
+            if (I_alpha > 0) {
+                fock_space_alpha.setNext(aaa);
+            }
+
+            int sign1 = -1;
+            for (size_t e1 = 0; e1 < N_alpha; e1++) {  // A1
+
+                sign1 *= -1;
+                size_t p = aaa.get_occupied_index(e1);  // retrieve the index of a given electron
+                size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
+
+                /**
+                 *  A1 = C1
+                 */
+                for (size_t e3 = 0; e3 < N_alpha; e3++) { // A2
+
+                    size_t r = aaa.get_occupied_index(e3);
+
+                    /**
+                     *  A2 = C2
+                     */
+                    mxx(I_alpha, I_alpha) +=   0.5 * hamiltonian_parameters.get_g()(p, p, r, r);
+
+
+                    size_t address3 = I_alpha - fock_space_alpha.get_vertex_weights(r, e3 + 1);
+
+                    /**
+                     *  C2 > A2
+                     */
+                    size_t e4 = e3 + 1;
+                    size_t s = r + 1;
+                    int sign3 = 1;
+                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address3, s, e4, sign3);
+
+                    while (s < K) {
+                        size_t J = address3 + fock_space_alpha.get_vertex_weights(s, e4);
+
+                        double value =  (hamiltonian_parameters.get_g()(p, p, r, s));
+                        if(p != r) {
+                            value -= hamiltonian_parameters.get_g()(p, s, r, p);
+                            value += hamiltonian_parameters.get_g()(r, s, p, p);
+
+                        }
+
+                        mxx(I_alpha, J) += sign3 * 0.5 * value;
+                        mxx(J, I_alpha) +=  sign3 * 0.5 * value;
+                        s++;  // go to the next orbital
+                        // perform a shift
+                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address3, s, e4, sign3);
+
+                    }  // (creation)
+
+                }
+
+
+                size_t address1 = address;
+                size_t e2 = e1;
+                size_t q = p;
+                /**
+                 *  A1 > C1
+                 */
+                int sign2 = sign1;
+                q--;
+                e2--;
+                fock_space_alpha.sbu(aaa, address1, q, e2, sign2);
+                while (q != -1) {
+
+                    size_t address2 = address1 + fock_space_alpha.get_vertex_weights(q, e2 + 2);
+
+                    /**
+                     *  A2 > C1
+                     */
+                    int sign3 = sign1;
+                    for (size_t e3 = e1 + 1; e3 < N_alpha; e3++) {
+                        sign3 *= -1;  // initial sign3 = sign of the annhilation, with one extra electron(from crea) = *-1
+                        size_t r = aaa.get_occupied_index(e3);
+                        size_t address3 = address2 - fock_space_alpha.get_vertex_weights(r, e3 + 1);
+
+                        size_t e4 = e3 + 1;
+                        size_t s = r + 1;
+
+                        int sign4 = sign3;
+                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address3, s, e4, sign4);
+
+                        while (s < K) {
+                            size_t J = address3 + fock_space_alpha.get_vertex_weights(s, e4);
+                            int signev = sign1 * sign2 * sign3 * sign4;
+                            double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) +
+                                                           hamiltonian_parameters.get_g()(r, s, p, q) -
+                                                           hamiltonian_parameters.get_g()(p, s, r, q) -
+                                                           hamiltonian_parameters.get_g()(r, q, p, s));
+                            mxx(I_alpha, J) +=  value;
+                            mxx(J, I_alpha) +=  value;
+                            s++;
+                            fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address3, s, e4, sign4);
+                        }
+                    }
+
+                    q--;
+                    fock_space_alpha.sbu(aaa, address1, q, e2, sign2);
+
+                }
+
+
+
+                e2 = e1 + 1;
+                q = p + 1;
+                sign2 = sign1;
+                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2, sign2);
+
+                /**
+                 *  DIAGONAL VALUES
+                 */
+                for (size_t s = 0; s < K; s++) {
+                    if(!aaa.isOccupied(s)){
+
+                        mxx(I_alpha, I_alpha) += 0.5 * hamiltonian_parameters.get_g()(p, s, s, p);
+
+                    }
+
+                }
+
+
+
+                /**
+                 *  A1 < C1
+                 */
+                while (q < K) {
+
+                    // BRANCH N
+
+
+                    address1 = address + fock_space_alpha.get_vertex_weights(q, e2);
+                    /**
+                     *  A2 > C1
+                     */
+                    int sign3 = sign2;
+                    for (size_t e3 = e2; e3 < N_alpha; e3++) {
+                        sign3 *= -1; // -1 cause we created electron (creation) sign of A is now the that of C *-1
+                        size_t r = aaa.get_occupied_index(e3);
+                        size_t address3 = address1 - fock_space_alpha.get_vertex_weights(r, e3 + 1);
+
+                        size_t e4 = e3 + 1;
+                        size_t s = r + 1;
+
+                        // perform a shift
+                        int sign4 = sign3;
+                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address3, s, e4, sign4);
+
+                        while (s < K) {
+                            size_t J = address3 + fock_space_alpha.get_vertex_weights(s, e4);
+                            int signev = sign1 * sign2 * sign3 * sign4;
+
+                            double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) +
+                                                           hamiltonian_parameters.get_g()(r, s, p, q) -
+                                                           hamiltonian_parameters.get_g()(r, q, p, s) -
+                                                           hamiltonian_parameters.get_g()(p, s, r, q));
+
+                            mxx(I_alpha, J) +=  value;
+                            mxx(J, I_alpha) +=  value;
+
+                            s++;  // go to the next orbital
+
+                            // perform a shift
+                            fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address3, s, e4, sign4);
+
+                        }  // (creation)
+
+                    }
+
+
+                    size_t r = q;
+
+                    sign3 = sign2;
+
+                    size_t address1c = address1;
+
+                    /**
+                     *  A2 < C1, (A2 > A1)
+                     */
+                    for (size_t e3 = e2 - 1; e3 > e1; e3--) {
+                        sign3 *= -1;
+                        size_t e4 = e2;
+                        address1c += fock_space_alpha.get_vertex_weights(r, e3) -
+                                    fock_space_alpha.get_vertex_weights(r, e3 + 1);
+                        r = aaa.get_occupied_index(e3);
+                        size_t address2 = address1c - fock_space_alpha.get_vertex_weights(r, e3);
+                        int sign4 = sign2;
+                        size_t s = q + 1;
+                        fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address2, s, e4, sign4);
+                        while (s < K) {
+
+                            size_t J = address2 + fock_space_alpha.get_vertex_weights(s, e4);
+
+                            int signev = sign1 * sign2 * sign3 * sign4;
+                            double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, q, r, s) +
+                                                           hamiltonian_parameters.get_g()(r, s, p, q) -
+                                                           hamiltonian_parameters.get_g()(r, q, p, s) -
+                                                           hamiltonian_parameters.get_g()(p, s, r, q));
+
+                            mxx(I_alpha, J) +=  value;
+                            mxx(J, I_alpha) +=  value;
+                            s++;
+
+                            fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address2, s, e4, sign4);
+
+                        }
+
+
+                    }
+
+                    /**
+                     *  A2 = C1
+                     */
+                    int signev = sign2 * sign1;
+
+                    for (size_t s2 = 0; s2 < K; s2++) {
+                        if(!aaa.isOccupied(s2)){
+
+                            double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, s2, s2, q));
+                            mxx(I_alpha, address1) +=  value;
+                            mxx(address1, I_alpha) +=  value;
 
                         }
 

@@ -466,8 +466,8 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
 
             size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
             size_t addback = address;
-            int em = e1;
-            int qq = p;
+            size_t em = e1;
+            size_t qq = p;
             int sign2 = sign1;
             while (qq > 0) {
                 qq--;
