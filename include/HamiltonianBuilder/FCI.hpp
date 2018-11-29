@@ -147,14 +147,20 @@ public:
                                             size_t J_alpha = fock_space_alpha.getAddress(spin_string_alpha_aaaa);  // the address of the string J_alpha that couples to I_alpha
 
 
-                                            //mxx(I_alpha, J_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
+                                            mxx(I_alpha, J_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
+
+
+
+
+
+
                                             //mxx(J_alpha, I_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
 
-                                            if( p != q &&q == r && s > p){
-                                                mxx(I_alpha, J_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
+                                            if( I_alpha < J_alpha ){
+                                                //mxx(I_alpha, J_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
                                                 //mxx(J_alpha, I_alpha) +=  0.5 * hamiltonian_parameters.get_g()(p, q, r, s) * sign_pqrs;
 
-                                                std::cout<<"PQRS"<<p<<q<<r<<s<<" "<<std::endl;
+                                                //std::cout<<"PQRS"<<p<<q<<r<<s<<" "<<sign_pqrs<<std::endl;
                                                  /*
                                                 std::cout<<"J "<<J_alpha<<" "<<std::endl;
                                                 std::cout<<"I "<<I_alpha<<" "<<std::endl;
@@ -205,7 +211,7 @@ public:
         auto dim = fock_space.get_dimension();
 
         Eigen::MatrixXd mxx = Eigen::MatrixXd::Zero(dim_alpha, dim_alpha);
-
+        std::cout<<"--------------------------------------------------------------------"<<std::endl;
         ONV aaa = fock_space_alpha.get_ONV(0);  // spin string with address 0
         for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {  // I_alpha loops over all addresses of alpha spin strings
             if (I_alpha > 0) {
@@ -233,7 +239,7 @@ public:
                     double value_diagonal_q =
                             0.5 * hamiltonian_parameters.get_g()(p, p, r1, r1);
 
-                    //mxx(I_alpha, I_alpha) +=  value_diagonal_q;
+                    mxx(I_alpha, I_alpha) +=  value_diagonal_q;
                     // A2C2 pair
 
                     size_t address1 = I_alpha - fock_space_alpha.get_vertex_weights(r1, e21 + 1);
@@ -254,14 +260,20 @@ public:
                         std::cout<<"sign3$:" << -sign3 << std::endl;
                         std::cout<<"this be J:"<<J<<std::endl;
                         */
-                        double value = (hamiltonian_parameters.get_g()(p, p, r1, s1) -
-                                                      hamiltonian_parameters.get_g()(p, s1, r1, p));
-                        if(p == r1) {
-                            value += hamiltonian_parameters.get_g()(p, s1, r1, p);
+                        double value =  (hamiltonian_parameters.get_g()(p, p, r1, s1));
+                        if(p != r1) {
+                            value -= hamiltonian_parameters.get_g()(p, s1, r1, p);
+                            std::cout << "PQRS " << p << s1 << r1 << p << " " << -sign3 << std::endl;
+                            value += hamiltonian_parameters.get_g()(r1, s1, p, p);
+                            std::cout << "PQRS " << r1 << s1 << p << p << " " << sign3 << std::endl;
+
                         }
 
-                        //mxx(I_alpha, J) += sign3 * 0.5 * value;
-                        //mxx(J, I_alpha) +=  value;
+                        std::cout<<"PQRS "<<p<<p<<r1<<s1<<" "<<sign3<<std::endl;
+
+
+                        mxx(I_alpha, J) += sign3 * 0.5 * value;
+                        mxx(J, I_alpha) +=  sign3 * 0.5 * value;
 
 
                         s1++;  // go to the next orbital
@@ -311,13 +323,14 @@ public:
                                                            hamiltonian_parameters.get_g()(r, s, p, qq) -
                                                            hamiltonian_parameters.get_g()(p, s, r, qq) -
                                                            hamiltonian_parameters.get_g()(r, qq, p, s));
-                            value = signev * 0.5 * hamiltonian_parameters.get_g()(p, qq, r, s);
-                            //std::cout<<"PQRS"<<p<<qq<<r<<s<<" "<<std::endl;
-                            //std::cout<<"this be J:"<<J<<std::endl;
-                            //std::cout<<"this be I:"<<I_alpha<<std::endl;
+                            //value = signev * 0.5 * hamiltonian_parameters.get_g()(p, qq, r, s);
+                            std::cout<<"PQRS "<<p<<qq<<r<<s<<" "<<signev<<std::endl;
+                            std::cout<<"PQRS "<<r<<s<<p<<qq<<" "<<signev<<std::endl;
+                            std::cout<<"PQRS "<<p<<s<<r<<qq<<" "<<-signev<<std::endl;
+                            std::cout<<"PQRS "<<r<<qq<<p<<s<<" "<<-signev<<std::endl;
 
-                            //mxx(I_alpha, J) +=  value;
-                            //mxx(J, I_alpha) +=  value;
+                            mxx(I_alpha, J) +=  value;
+                            mxx(J, I_alpha) +=  value;
                             s++;
                             fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, add3, s, e4, sign4);
 
@@ -342,25 +355,21 @@ public:
                 fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, address, q, e2, sign2);
                 //std::cout<<"E2:"<<e2<<std::endl;
                 //ANNI-CREA-ANNI ///// OUT OF ORDA
-                /*
-                size_t ss = q;
-                size_t ee = e2;
-                size_t addy = address;
-                int sign44 = sign2;
-                while (ss < K) {
-                    size_t J = addy + fock_space_alpha.get_vertex_weights(ss, ee);
-                    int signev = sign1 * sign44;
-                    double value = signev * 0.5 * hamiltonian_parameters.get_g()(p, p, p, ss);
-                    //mxx(I_alpha, I_alpha) += 0.5 * hamiltonian_parameters.get_g()(p, ss, ss, p);
-                    //mxx(I_alpha, J) +=  value;
-                    //mxx(J, I_alpha) +=  value;
-                    ss++;
-                    fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(aaa, addy, ss, ee, sign44);
+
+
+
+                for (size_t ss2 = 0; ss2 < K; ss2++) {
+                    if(!aaa.isOccupied(ss2)){
+
+                        mxx(I_alpha, I_alpha) += 0.5 * hamiltonian_parameters.get_g()(p, ss2, ss2, p);
+                        //mxx(J, I_alpha) +=  value;
+
+                    }
 
                 }
 
                 // END ANNI-CREA-ANNI
-                */
+
                 //C1
                 while (q < K) {
 
@@ -392,16 +401,22 @@ public:
                                                            hamiltonian_parameters.get_g()(r, s, p, q) -
                                                            hamiltonian_parameters.get_g()(r, q, p, s) -
                                                            hamiltonian_parameters.get_g()(p, s, r, q));
-                            value = signev * 0.5 * hamiltonian_parameters.get_g()(p, q, r, s);
+                            //value = signev * 0.5 * hamiltonian_parameters.get_g()(p, q, r, s);
 
-                            //mxx(I_alpha, J) +=  value;
+                            std::cout<<"PQRS "<<p<<q<<r<<s<<" "<<signev<<std::endl;
+                            std::cout<<"PQRS "<<r<<s<<p<<q<<" "<<signev<<std::endl;
+                            std::cout<<"PQRS "<<r<<q<<p<<s<<" "<<-signev<<std::endl;
+                            std::cout<<"PQRS "<<p<<s<<r<<q<<" "<<-signev<<std::endl;
+
+                            mxx(I_alpha, J) +=  value;
+
                             /*
                             std::cout<<"PQRS"<<p<<q<<r<<s<<" "<<std::endl;
                             std::cout<<"this be J:"<<J<<std::endl;
                             std::cout<<"this be I:"<<I_alpha<<std::endl;
                             std::cout<<"this be sign:"<<signev<<std::endl;
                              */
-                            //mxx(J, I_alpha) +=  value;
+                            mxx(J, I_alpha) +=  value;
                             //value = signev * 0.5 * hamiltonian_parameters.get_g()(p, q, r, s);
                             s++;  // go to the next orbital
 
@@ -451,16 +466,20 @@ public:
                                                            hamiltonian_parameters.get_g()(ci, s, p, q) -
                                                            hamiltonian_parameters.get_g()(ci, q, p, s) -
                                                            hamiltonian_parameters.get_g()(p, s, ci, q));
-                            ///
+
+                            std::cout<<"PQRS "<<p<<q<<ci<<s<<" "<<signev<<std::endl;
+                            std::cout<<"PQRS "<<ci<<s<<p<<q<<" "<<signev<<std::endl;
+                            std::cout<<"PQRS "<<ci<<q<<p<<s<<" "<<-signev<<std::endl;
+                            std::cout<<"PQRS "<<p<<s<<ci<<q<<" "<<-signev<<std::endl;
                             /*
                             std::cout<<"PQRS"<<p<<q<<ci<<s<<" "<<std::endl;
                             std::cout<<"this be J:"<<J<<std::endl;
                             std::cout<<"this be I:"<<I_alpha<<std::endl;
                             std::cout<<"this be sign:"<<signev<<std::endl;
                              */
-                            value = signev * 0.5 * hamiltonian_parameters.get_g()(p, q, ci, s);
-                            //mxx(I_alpha, J) +=  value;
-                            //mxx(J, I_alpha) +=  value;
+                            //value = signev * 0.5 * hamiltonian_parameters.get_g()(p, q, ci, s);
+                            mxx(I_alpha, J) +=  value;
+                            mxx(J, I_alpha) +=  value;
                             //mvec
                             s++;
 
@@ -479,8 +498,9 @@ public:
                         if(!aaa.isOccupied(s2)){
 
                             double value = signev * 0.5 * (hamiltonian_parameters.get_g()(p, s2, s2, q));
+                            std::cout<<"PQRS "<<p<<s2<<s2<<q<<" "<<signev<<std::endl;
                             mxx(I_alpha, address3) +=  value;
-                            //mxx(J, I_alpha) +=  value;
+                            mxx(address3, I_alpha) +=  value;
 
                         }
 
