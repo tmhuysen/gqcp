@@ -187,6 +187,7 @@ set(PROJECT_EXECUTABLES_FOLDER ${CMAKE_SOURCE_DIR}/exe)
 
 # Find the source files for the executables
 set(PROJECT_EXE_SOURCE_FILES
+    ${PROJECT_EXECUTABLES_FOLDER}/cf.cpp
     ${PROJECT_EXECUTABLES_FOLDER}/oo_doci.cpp
     ${PROJECT_EXECUTABLES_FOLDER}/fci_lowdin.cpp
     ${PROJECT_EXECUTABLES_FOLDER}/hubbard.cpp)

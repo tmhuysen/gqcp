@@ -699,7 +699,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters& hamiltonia
 
 
     if (xyr) {
-        xyr = false;
+        xyr = true;
 
         this->spinSeparatedModule(fock_space_alpha, k, hamiltonian_parameters, alpha_ev);
         this->spinSeparatedModule(fock_space_beta, k, hamiltonian_parameters, beta_ev);
