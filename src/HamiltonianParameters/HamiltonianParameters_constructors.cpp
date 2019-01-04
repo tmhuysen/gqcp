@@ -218,7 +218,7 @@ GQCP::HamiltonianParameters readFCIDUMPFile(const std::string& fcidump_filename)
 GQCP::HamiltonianParameters readPatrick(const std::string& patrick, const Molecule& molecule, const std::string& basisset) {
     std::ifstream input_file_stream (patrick + ".two");
     if (!input_file_stream.good()) {
-        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path?");
+        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path? @two");
     }
     //  Start reading in the one- and two-electron integrals
     std::string dtoe;
@@ -256,8 +256,8 @@ GQCP::HamiltonianParameters readPatrick(const std::string& patrick, const Molecu
     }  // while loop
 
     std::ifstream input_file_stream2 (patrick + ".one");
-    if (!input_file_stream.good()) {
-        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path?");
+    if (!input_file_stream2.good()) {
+        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path? @one");
     }
     //  Start reading in the one- and two-electron integrals
     Eigen::MatrixXd h_SO = Eigen::MatrixXd::Zero(K, K);
@@ -283,8 +283,8 @@ GQCP::HamiltonianParameters readPatrick(const std::string& patrick, const Molecu
     }  // while loop
 
     std::ifstream input_file_stream3 (patrick + ".ove");
-    if (!input_file_stream.good()) {
-        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path?");
+    if (!input_file_stream3.good()) {
+        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path? @ove");
     }
 
     Eigen::MatrixXd S = Eigen::MatrixXd::Zero(K, K);
@@ -302,14 +302,14 @@ GQCP::HamiltonianParameters readPatrick(const std::string& patrick, const Molecu
     // Make the ingredients to construct HamiltonianParameters
 
     std::ifstream input_file_stream4 (patrick + ".mo");
-    if (!input_file_stream.good()) {
-        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path?");
+    if (!input_file_stream4.good()) {
+        throw std::runtime_error("The provided BLANKKKKKK file is illegible. Maybe you specified a wrong path? @mo");
     }
     //  Start reading in the one- and two-electron integrals
 
     Eigen::MatrixXd C = Eigen::MatrixXd::Zero(K, K);
     index_row = 0;
-    while (std::getline(input_file_stream, line)) {
+    while (std::getline(input_file_stream4, line)) {
         std::istringstream iss(line);
         size_t index_col = 0;
         while(iss >> x){
@@ -324,9 +324,9 @@ GQCP::HamiltonianParameters readPatrick(const std::string& patrick, const Molecu
 
     GQCP::OneElectronOperator H_core (h_SO);
     GQCP::TwoElectronOperator G (g_SO);
-    GQCP::OneElectronOperator S2 (S);
+    GQCP::OneElectronOperator S2 (Eigen::MatrixXd::Identity(K,K));
 
-    GQCP::HamiltonianParameters ham (ao_basis, S2, H_core, G, C.transpose(), molecule.calculateInternuclearRepulsionEnergy())
+    GQCP::HamiltonianParameters ham (ao_basis, S2, H_core, G, C.transpose(), molecule.calculateInternuclearRepulsionEnergy());
 
     return ham;
 }

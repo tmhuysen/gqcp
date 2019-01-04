@@ -100,8 +100,8 @@ int main (int argc, char** argv) {
     // Create and open a file: filename.xyz -> filename_doci_rhf_basisset.output
     std::string output_filename = input_xyz_file;
     std::string output_filename_log = input_xyz_file;
-    boost::replace_last(output_filename, ".xyz", std::string("_cf_") + basisset + std::string(".output"));
-    boost::replace_last(output_filename_log, ".xyz", std::string("_cf_") + basisset + std::string(".log"));
+    boost::replace_last(output_filename, ".xyz", std::string("_cfPB_") + basisset + std::string(".output"));
+    boost::replace_last(output_filename_log, ".xyz", std::string("_cfPB_") + basisset + std::string(".log"));
 
     std::ofstream output_file;
     std::ofstream output_log;
@@ -112,14 +112,12 @@ int main (int argc, char** argv) {
     // Actual calculations
     // Prepare molecular Hamiltonian parameters in the Löwdin basis
     GQCP::Molecule molecule (input_xyz_file, +1);
-    std::string quz =
-    auto mol_ham_par = GQCP::HamiltonianParameters::readPatrick(input_file, molecule, basisset);  // in the AO basis
+    auto mol_ham_par = GQCP::readPatrick(input_file, molecule, basisset);  // in the AO basis
     auto K = mol_ham_par.get_K();
     GQCP::ProductFockSpace fock_space (K, N_alpha, N_beta);
     GQCP::FCI fci (fock_space);
 
     numopt::eigenproblem::DavidsonSolverOptions davidson_solver_options(fock_space.HartreeFockExpansion());
-
 
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(bfs);
     for (size_t i = 0; i < lambdasv.rows(); i++) {
