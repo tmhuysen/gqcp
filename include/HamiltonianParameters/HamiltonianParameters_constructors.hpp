@@ -56,6 +56,7 @@ GQCP::HamiltonianParameters constructRandomHamiltonianParameters(size_t K);
  *  @return Hamiltonian parameters corresponding to the contents of an FCIDUMP file
  */
 GQCP::HamiltonianParameters readFCIDUMPFile(const std::string& fcidump_file);
+GQCP::HamiltonianParameters readPatrick(const std::string& patrick);
 
 
 /**

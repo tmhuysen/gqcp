@@ -188,6 +188,7 @@ set(PROJECT_EXECUTABLES_FOLDER ${CMAKE_SOURCE_DIR}/exe)
 # Find the source files for the executables
 set(PROJECT_EXE_SOURCE_FILES
     ${PROJECT_EXECUTABLES_FOLDER}/cf.cpp
+    ${PROJECT_EXECUTABLES_FOLDER}/cflocalized.cpp
     ${PROJECT_EXECUTABLES_FOLDER}/oo_doci.cpp
     ${PROJECT_EXECUTABLES_FOLDER}/fci_lowdin.cpp
     ${PROJECT_EXECUTABLES_FOLDER}/hubbard.cpp)
@@ -200,6 +201,7 @@ set(PROJECT_BENCH_SOURCE_FILES
         ${PROJECT_BENCHMARKS_FOLDER}/DOCI/doci_case.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/DOCI/doci_matrix.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/DOCI/doci_matvec.cpp
+        ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_1RDM.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_coupling.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_hchain.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_matrix.cpp

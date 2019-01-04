@@ -1,30 +1,28 @@
 /**
- *  A benchmark executable for the FCI matvec
+ *  A benchmark executable for the FCI 1RDM
  */
 
 #include <benchmark/benchmark.h>
 
 #include "HamiltonianParameters/HamiltonianParameters_constructors.hpp"
 #include "HamiltonianBuilder/FCI.hpp"
+#include "RDM/FCIRDMBuilder.hpp"
 
 
-static void matvec(benchmark::State& state) {
+static void rdm(benchmark::State& state) {
     // Prepare parameters
     size_t K = state.range(0);
     size_t N = state.range(1);
     GQCP::ProductFockSpace fock_space (K, N, N);
     GQCP::FCI fci (fock_space);
 
-    GQCP::HamiltonianParameters ham_par = GQCP::constructRandomHamiltonianParameters(K);
-    Eigen::VectorXd diagonal = fci.calculateDiagonal(ham_par);
     Eigen::VectorXd x = fock_space.randomExpansion();
-    Eigen::VectorXd matvec = fci.matrixVectorProduct(ham_par, x, diagonal);
-
+    GQCP::FCIRDMBuilder fcirdm (fock_space);
     // Code inside this loop is measured repeatedly
     for (auto _ : state) {
-        Eigen::VectorXd matvec = fci.matrixVectorProduct(ham_par, x, diagonal);
+        GQCP::OneRDMs var = fcirdm.calculate1RDMs(x);
 
-        benchmark::DoNotOptimize(matvec);  // make sure the variable is not optimized away by compiler
+        benchmark::DoNotOptimize(var);  // make sure the variable is not optimized away by compiler
     }
 
     state.counters["Orbitals"] = K;
@@ -42,5 +40,5 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
 
 
 // Perform the benchmarks
-BENCHMARK(matvec)->Unit(benchmark::kMillisecond)->Apply(CustomArguments);
+BENCHMARK(rdm)->Unit(benchmark::kMillisecond)->Apply(CustomArguments);
 BENCHMARK_MAIN();
