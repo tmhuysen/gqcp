@@ -237,13 +237,8 @@ GQCP::HamiltonianParameters readPatrick(const std::string& patrick, const Molecu
         // Based on what the values of the indices are, we can read one-electron integrals, two-electron integrals and the internuclear repulsion energy
         //  See also (http://hande.readthedocs.io/en/latest/manual/integrals.html)
         //  I think the documentation is a bit unclear for the two-electron integrals, but we can rest assured that FCIDUMP files give the two-electron integrals in CHEMIST's notation.
-        iss >> i >> a >> j >> b >> dtoe;
+        iss >> i >> a >> j >> b >> x;
         //std::cout << dtoe;
-        auto e(dtoe.find_first_of("Dd"));
-        if (e != std::string::npos) {
-            dtoe[e] = 'E';
-        }
-        x = std::stod(dtoe);
         //  Two-electron integrals are given in CHEMIST'S NOTATION, so just copy them over
         if ((i > 0) && (a > 0) && (j > 0) && (b > 0)) {
             size_t p = i - 1;
@@ -267,12 +262,8 @@ GQCP::HamiltonianParameters readPatrick(const std::string& patrick, const Molecu
         // Based on what the values of the indices are, we can read one-electron integrals, two-electron integrals and the internuclear repulsion energy
         //  See also (http://hande.readthedocs.io/en/latest/manual/integrals.html)
         //  I think the documentation is a bit unclear for the two-electron integrals, but we can rest assured that FCIDUMP files give the two-electron integrals in CHEMIST's notation.
-        iss >> i >> j >> dtoe;
-        auto e(dtoe.find_first_of("Dd"));
-        if (e != std::string::npos) {
-            dtoe[e] = 'E';
-        }
-        x = std::stod(dtoe);
+        iss >> i >> j >> x;
+
         //  Two-electron integrals are given in CHEMIST'S NOTATION, so just copy them over
         if ((i > 0) && (j > 0)) {
             size_t p = i - 1;

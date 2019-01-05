@@ -19,7 +19,7 @@ namespace po = boost::program_options;
 #include "properties/expectation_values.hpp"
 #include "RHF/DIISRHFSCFSolver.hpp"
 #include "Localization/ERJacobiLocalizer.hpp"
-
+#include <chrono>
 
 int main (int argc, char** argv) {
 
@@ -112,7 +112,14 @@ int main (int argc, char** argv) {
     // Actual calculations
     // Prepare molecular Hamiltonian parameters in the Löwdin basis
     GQCP::Molecule molecule (input_xyz_file, +1);
+    auto start = std::chrono::high_resolution_clock::now();
     auto mol_ham_par = GQCP::readPatrick(input_file, molecule, basisset);  // in the AO basis
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    // Process the chrono time and output
+    auto elapsed_time = stop - start;           // in nanoseconds
+    auto seconds = elapsed_time.count() / 1e9;  // in seconds
+    std::cout << "measily : " << seconds << std::endl;
     auto K = mol_ham_par.get_K();
     GQCP::ProductFockSpace fock_space (K, N_alpha, N_beta);
     GQCP::FCI fci (fock_space);
@@ -125,14 +132,17 @@ int main (int argc, char** argv) {
         auto constrained_ham_par = mol_ham_par.constrain(mulliken_operator, lambdasv(i));
 
         GQCP::CISolver ci_solver (fci, constrained_ham_par);
-
+        start = std::chrono::high_resolution_clock::now();
         try {
             ci_solver.solve(davidson_solver_options);
         } catch (const std::exception& e) {
             output_log << e.what() << "lambda: " << lambdasv(i) << std::endl;
             continue;
         }
-
+        stop = std::chrono::high_resolution_clock::now();
+        elapsed_time = stop - start;           // in nanoseconds
+        seconds = elapsed_time.count() / 1e9;  // in seconds
+        std::cout << "do the davidson : " << seconds << std::endl;
         auto fci_energy = ci_solver.get_eigenpair().get_eigenvalue();
         auto fci_coefficients = ci_solver.get_eigenpair().get_eigenvector();
         double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
