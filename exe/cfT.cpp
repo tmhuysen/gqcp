@@ -125,8 +125,8 @@ int main (int argc, char** argv) {
         auto h1 = GQCP::HamiltonianParameters::Molecular(mol1, basisset);
         auto h2 = GQCP::HamiltonianParameters::Molecular(mol2, basisset);
 
-        GQCP::DIISRHFSCFSolver diis_scf_solver1 (h1, mol1, 6, 1e-12, 500);
-        GQCP::DIISRHFSCFSolver diis_scf_solver2 (h2, mol2, 6, 1e-12, 500);
+        GQCP::DIISRHFSCFSolver diis_scf_solver1 (h1, mol1, 6, 1e-14, 500);
+        GQCP::DIISRHFSCFSolver diis_scf_solver2 (h2, mol2, 6, 1e-14, 500);
         diis_scf_solver1.solve();
         diis_scf_solver2.solve();
         auto rhf1 = diis_scf_solver1.get_solution();
@@ -139,11 +139,26 @@ int main (int argc, char** argv) {
         CC.topLeftCorner(K1, K1) += rhf1.get_C();
         CC.bottomRightCorner(K2, K2) += rhf2.get_C();
         mol_ham_par.transform(CC);
+        // LOGICAL ROTATION TO SET VIRTUALS AS ONE WOULD EXPECT
         mol_ham_par.rotate(GQCP::JacobiRotationParameters(8,3,1.5707963268));
         mol_ham_par.rotate(GQCP::JacobiRotationParameters(7,4,1.5707963268));
+        output_log << "HCORE:" << mol_ham_par.get_h().get_matrix_representation().diagonal().transpose() << std::endl;
+        for (int i = 0; i<K; i++) {
+            for (int j = i+1; j < K; j++) {
+                if (mol_ham_par.get_h().get_matrix_representation()(i,i) > mol_ham_par.get_h().get_matrix_representation()(j,j)){
+                    mol_ham_par.rotate(GQCP::JacobiRotationParameters(j,i,1.5707963268));
+                }
+            }
+        }
+        output_log << "HCORE2:" << mol_ham_par.get_h().get_matrix_representation().diagonal().transpose() << std::endl;
+
+        // ME CHEATING KNOWING WHAT THE RESULTS SHOULD BE FOR ILLOGICAL ROTATIONS LMAO
+        //mol_ham_par.rotate(GQCP::JacobiRotationParameters(6,2,1.5707963268));
+        //mol_ham_par.rotate(GQCP::JacobiRotationParameters(5,3,1.5707963268));
+        //mol_ham_par.rotate(GQCP::JacobiRotationParameters(9,6,1.5707963268));
 
         try {
-            GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-12, 500);
+            GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-14, 500);
             diis_scf_solver.solve();
             auto rhf = diis_scf_solver.get_solution();
             mol_ham_par.transform(rhf.get_C());
@@ -213,6 +228,7 @@ int main (int argc, char** argv) {
         output_log << "TOTAL ENERGY: " << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdasv(i) * mul << "\t lambda: " << lambdasv(i) << "\t population of target: " << mul << std::endl;
         output_file << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdasv(i) * mul << "\t" << lambdasv(i) << "\t" << mul << std::endl;
         output_log << "1RDM: " << std::setprecision(15) << std::endl << D.get_matrix_representation() << std::endl;
+        output_log << "First eigenvector coefficient: " << std::setprecision(15) << fci_coefficients(0) << std::endl;
     }
     output_log << "-------------------general-----------------------"<< std::endl;
 

@@ -114,22 +114,74 @@ int main (int argc, char** argv) {
     auto mol_ham_par = GQCP::HamiltonianParameters::Molecular(molecule, basisset);  // in the AO basis
 
 
-    GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-9, 10000);
 
     try {
-        diis_scf_solver.solve();
+        std::vector<GQCP::Atom> atom1 {molecule.get_atoms()[0]};
+        std::vector<GQCP::Atom> atom2 {molecule.get_atoms()[1]};
+
+        GQCP::Molecule mol1(atom1, +1);
+        GQCP::Molecule mol2(atom2);
+
+        auto h1 = GQCP::HamiltonianParameters::Molecular(mol1, basisset);
+        auto h2 = GQCP::HamiltonianParameters::Molecular(mol2, basisset);
+
+        GQCP::DIISRHFSCFSolver diis_scf_solver1 (h1, mol1, 6, 1e-14, 500);
+        GQCP::DIISRHFSCFSolver diis_scf_solver2 (h2, mol2, 6, 1e-14, 500);
+        diis_scf_solver1.solve();
+        diis_scf_solver2.solve();
+        auto rhf1 = diis_scf_solver1.get_solution();
+        auto rhf2 = diis_scf_solver2.get_solution();
+        size_t K1 = h1.get_K();
+        size_t K2 = h2.get_K();
+
+        size_t K = K1+K2;
+        Eigen::MatrixXd CC = Eigen::MatrixXd::Zero(K, K);
+        CC.topLeftCorner(K1, K1) += rhf1.get_C();
+        CC.bottomRightCorner(K2, K2) += rhf2.get_C();
+        mol_ham_par.transform(CC);
+        // LOGICAL ROTATION TO SET VIRTUALS AS ONE WOULD EXPECT
+        mol_ham_par.rotate(GQCP::JacobiRotationParameters(8,3,1.5707963268));
+        mol_ham_par.rotate(GQCP::JacobiRotationParameters(7,4,1.5707963268));
+        output_log << "HCORE:" << mol_ham_par.get_h().get_matrix_representation().diagonal().transpose() << std::endl;
+        for (int i = 0; i<K; i++) {
+            for (int j = i+1; j < K; j++) {
+                if (mol_ham_par.get_h().get_matrix_representation()(i,i) > mol_ham_par.get_h().get_matrix_representation()(j,j)){
+                    mol_ham_par.rotate(GQCP::JacobiRotationParameters(j,i,1.5707963268));
+                }
+            }
+        }
+        output_log << "HCORE2:" << mol_ham_par.get_h().get_matrix_representation().diagonal().transpose() << std::endl;
+
+        // ME CHEATING KNOWING WHAT THE RESULTS SHOULD BE FOR ILLOGICAL ROTATIONS LMAO
+        //mol_ham_par.rotate(GQCP::JacobiRotationParameters(6,2,1.5707963268));
+        //mol_ham_par.rotate(GQCP::JacobiRotationParameters(5,3,1.5707963268));
+        //mol_ham_par.rotate(GQCP::JacobiRotationParameters(9,6,1.5707963268));
+
+        try {
+            GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-14, 500);
+            diis_scf_solver.solve();
+            auto rhf = diis_scf_solver.get_solution();
+            mol_ham_par.transform(rhf.get_C());
+
+        } catch (const std::exception& e) {
+            output_log << "Lodwin Orthonormalized" << std::endl;
+            mol_ham_par.LowdinOrthonormalize();
+        }
+
     } catch (const std::exception& e) {
+
         output_log << e.what() << std::endl;
         output_file.close();
         output_log.close();
         return 1;
+
     }
 
-    auto rhf = diis_scf_solver.get_solution();
-    mol_ham_par.transform(rhf.get_C());
+
 
     // Solve the FCI eigenvalue problem using the dense algorithm
     auto K = mol_ham_par.get_K();
+
     GQCP::ProductFockSpace fock_space (K, N_alpha, N_beta);
     GQCP::FCI fci (fock_space);
     GQCP::CISolver ci_solver (fci, mol_ham_par);
@@ -148,20 +200,8 @@ int main (int argc, char** argv) {
     Eigen::MatrixXd oneM = D.get_matrix_representation();
     Eigen::MatrixXd new_C = D.diagonalize().rowwise().reverse();
     Eigen::VectorXd nats = D.get_matrix_representation().diagonal().reverse();
-    mol_ham_par.transform(new_C);
 
-
-
-    GQCP::CISolver ci_solver2 (fci, mol_ham_par);
-    ci_solver2.solve(davidson_solver_options);
-    auto fci_coefficients2 = ci_solver2.get_eigenpair().get_eigenvector();
-    GQCP::OneRDM D2 = fci_rdm.calculate1RDMs(fci_coefficients2).one_rdm;
-
-    if (nats.isApprox(D2.get_matrix_representation().diagonal())) {
-        output_log << "Naturals correct";
-    } else {
-        output_log << "Naturals in-correct";
-    }
+    numopt::eigenproblem::DavidsonSolverOptions davidson_solver_options2(fci_coefficients);
 
 
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(bfs);
@@ -172,16 +212,17 @@ int main (int argc, char** argv) {
         GQCP::CISolver ci_solver (fci, constrained_ham_par);
 
         try {
-            ci_solver.solve(davidson_solver_options);
+            ci_solver.solve(davidson_solver_options2);
         } catch (const std::exception& e) {
             output_log << e.what() << "lambda: " << lambdasv(i) << std::endl;
+            std::cout << "\033[1;31m DAVIDSON FAILED IN: \033[0m" << input_xyz_file;
             continue;
         }
 
         auto fci_energy = ci_solver.get_eigenpair().get_eigenvalue();
         auto fci_coefficients = ci_solver.get_eigenpair().get_eigenvector();
         double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
-
+        davidson_solver_options2.X_0 = fci_coefficients;
         GQCP::RDMCalculator fci_rdm (fock_space);
         GQCP::OneRDM D = fci_rdm.calculate1RDMs(fci_coefficients).one_rdm;
 
@@ -191,7 +232,6 @@ int main (int argc, char** argv) {
         output_file << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdasv(i) * mul << "\t" << lambdasv(i) << "\t" << mul << std::endl;
         output_log << "1RDM: " << std::setprecision(15) << std::endl << D.get_matrix_representation() << std::endl;
         output_log << "First eigenvector coefficient: " << std::setprecision(15) << fci_coefficients(0) << std::endl;
-
     }
     output_log << "-------------------general-----------------------"<< std::endl;
 
@@ -202,13 +242,11 @@ int main (int argc, char** argv) {
 
     output_log << "selected BF: " << std::setprecision(15) << std::endl << bfsv.transpose() << std::endl;
     output_log << "selected lambdas: " << std::setprecision(15) << std::endl << lambdasv.transpose() << std::endl;
-    output_log << "RHF C: " << std::setprecision(15) << std::endl << rhf.get_C() << std::endl;
     output_log << "RDM (no constraint): " << std::setprecision(15) << std::endl << oneM << std::endl;
     output_log << "RDM Eigenvectors: " << std::setprecision(15) << std::endl << new_C << std::endl;
     output_log << "Total C: " << std::setprecision(15) << std::endl << mol_ham_par.get_C() << std::endl;
     output_log << "Basis set used: " << std::setprecision(15) << basisset << std::endl;
     output_log << "Naturals: " << std::setprecision(15) << std::endl << nats.transpose() << std::endl;
-    output_log << "Naturals: " << std::setprecision(15) << std::endl << D2.get_matrix_representation().diagonal().transpose() << std::endl;
     output_log << "Version: " << std::setprecision(15) << "Tmhuysen's fci hack" << std::endl;
 
     output_file.close();
