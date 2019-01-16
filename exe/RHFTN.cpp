@@ -156,12 +156,15 @@ int main (int argc, char** argv) {
         return 1;
 
     }
-
+    auto K = mol_ham_par.get_K();
+    Eigen::MatrixXd gC = Eigen::MatrixXd::Identity(K, K);
     auto mulliken_operator_base = mol_ham_par.calculateMullikenOperator(bfs);
 
     for (size_t i = 0; i < lambdasv.rows(); i++) {
 
         auto constrained_ham_par = mol_ham_par.constrain(mulliken_operator_base, lambdasv(i));
+        constrained_ham_par.transform(gC);
+
         GQCP::DIISRHFSCFSolver diis_scf_solver (constrained_ham_par, molecule, 6, 1e-12, 10000);
         auto mulliken_operator = mulliken_operator_base;
 
@@ -176,7 +179,8 @@ int main (int argc, char** argv) {
         auto rhf_electronic = rhf.get_electronic_energy();
         double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
         GQCP::OneRDM D = GQCP::calculateRHF1RDM(constrained_ham_par.get_K(), molecule.get_N());
-        mulliken_operator.transform(rhf.get_C());
+        gC = rhf.get_C();
+        mulliken_operator.transform(gC);
         double mul = calculateExpectationValue(mulliken_operator, D);
 
         output_log << "TOTAL ENERGY: " << std::setprecision(15) << rhf_electronic + internuclear_repulsion_energy + lambdasv(i) * mul << "\t lambda: " << lambdasv(i) << "\t population of target: " << mul << std::endl;
