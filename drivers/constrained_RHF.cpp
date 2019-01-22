@@ -17,6 +17,7 @@ namespace po = boost::program_options;
 #include "RDM/RDMCalculator.hpp"
 #include "properties/expectation_values.hpp"
 #include "RHF/DIISRHFSCFSolver.hpp"
+#include "RHF/PlainRHFSCFSolver.hpp"
 
 
 int main (int argc, char** argv) {
@@ -115,8 +116,8 @@ int main (int argc, char** argv) {
             std::vector<GQCP::Atom> atom1 {molecule.get_atoms()[0]};
             std::vector<GQCP::Atom> atom2 {molecule.get_atoms()[1]};
 
-            GQCP::Molecule mol1(atom1, +3);
-            GQCP::Molecule mol2(atom2, -2);
+            GQCP::Molecule mol1(atom1, +1);
+            GQCP::Molecule mol2(atom2);
 
             auto h1 = GQCP::HamiltonianParameters::Molecular(mol1, basisset);
             auto h2 = GQCP::HamiltonianParameters::Molecular(mol2, basisset);
@@ -158,33 +159,57 @@ int main (int argc, char** argv) {
         }
 
     } else {
+        /*
         GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-13, 500);
         diis_scf_solver.solve();
         auto rhf = diis_scf_solver.get_solution();
         mol_ham_par.transform(rhf.get_C());
+         */
     }
 
+    const size_t iterations = 1000;
+    const double thresh = 1e-12;
 
     auto K = mol_ham_par.get_K();
     Eigen::MatrixXd gC = Eigen::MatrixXd::Identity(K, K);
     auto mulliken_operator_base = mol_ham_par.calculateMullikenOperator(bfs);
 
-    for (size_t i = 0; i < lambdasv.rows(); i++) {
+    for (int i = lambdasv.rows()-1; i > -1; i--) {
 
         auto constrained_ham_par = mol_ham_par.constrain(mulliken_operator_base, lambdasv(i));
         constrained_ham_par.transform(gC);
-
-        GQCP::DIISRHFSCFSolver diis_scf_solver (constrained_ham_par, molecule, 6, 1e-13, 1000);
-        auto mulliken_operator = mulliken_operator_base;
-
+        GQCP::RHF rhf;
+        bool da = false;
         try {
-            diis_scf_solver.solve();
+            GQCP::PlainRHFSCFSolver plain_scf_solver (constrained_ham_par, molecule, thresh, iterations);
+            plain_scf_solver.solve();
+            output_log << "lambda: " << lambdasv(i) << "\t" << "PLAIN" << std::endl;
+            rhf = plain_scf_solver.get_solution();
         } catch (const std::exception& e) {
-            output_log << e.what() << "lambda: " << lambdasv(i) << std::endl;
-            std::cout << "\033[1;31m SCF FAILED IN: \033[0m" << input_xyz_file;
+
+            for (int x = 20; x>1; x--) {
+                if (x==2) {
+                    std::cout << "\033[1;31m SCF FAILED IN: \033[0m" << input_xyz_file;
+                    da = true;
+                }
+                try {
+                    GQCP::DIISRHFSCFSolver diis_scf_solver (constrained_ham_par, molecule, x, thresh, iterations);
+                    diis_scf_solver.solve();
+                    rhf = diis_scf_solver.get_solution();
+                    output_log << "lambda: " << lambdasv(i) << "\t" << "DIIS at collapse: "<<x<< std::endl;
+
+                    break;
+                } catch (const std::exception& e) {
+                    continue;
+                }
+            }
+        }
+
+        if (da) {
             continue;
         }
-        auto rhf = diis_scf_solver.get_solution();
+
+        auto mulliken_operator = mulliken_operator_base;
         auto rhf_electronic = rhf.get_electronic_energy();
         double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
         GQCP::OneRDM D = GQCP::calculateRHF1RDM(constrained_ham_par.get_K(), molecule.get_N());
@@ -206,6 +231,7 @@ int main (int argc, char** argv) {
     output_log << "selected lambdas: " << std::setprecision(15) << std::endl << lambdasv.transpose() << std::endl;
     output_log << "Total C: " << std::setprecision(15) << std::endl << mol_ham_par.get_T_total() << std::endl;
     output_log << "Basis set used: " << std::setprecision(15) << basisset << std::endl;
+    output_log << "SCF solvers param: " << std::setprecision(15) << "\t thresh: " <<thresh << "\t itter: " << iterations << std::endl;
     output_log << "Version: " << std::setprecision(15) << "Tmhuysen's fci hack" << std::endl;
 
     output_file.close();
