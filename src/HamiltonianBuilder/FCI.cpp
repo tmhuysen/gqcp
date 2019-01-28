@@ -400,8 +400,7 @@ void FCI::set_hamiltonian_parameters(const HamiltonianParameters& hamiltonian_pa
 
     spinSeparatedModule(fock_space_alpha, k, hamiltonian_parameters, this->alpha_ev);
     spinSeparatedModule(fock_space_beta, k, hamiltonian_parameters, this->beta_ev);
-    this->beta_resolved = std::vector<Eigen::SparseMatrix<double>>(K * (K + 1) / 2,
-                                                             Eigen::SparseMatrix<double>(dim_beta, dim_beta));
+    this->beta_resolved = std::vector<Eigen::SparseMatrix<double>>(K * (K + 1) / 2, Eigen::SparseMatrix<double>(dim_beta, dim_beta));
 
     for (size_t p = 0; p < K; p++) {
 

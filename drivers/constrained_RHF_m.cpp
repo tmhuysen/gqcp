@@ -18,12 +18,13 @@ namespace po = boost::program_options;
 #include "properties/expectation_values.hpp"
 #include "RHF/DIISRHFSCFSolver.hpp"
 #include "RHF/PlainRHFSCFSolver.hpp"
+#include "elements.hpp"
 
 
 int main (int argc, char** argv) {
 
     // Input processing
-    std::string input_xyz_file;
+    std::string lin;
     std::string basisset;
     std::string constrain_line;
     std::string bf_line;
@@ -37,7 +38,7 @@ int main (int argc, char** argv) {
         po::options_description desc ("Options");
         desc.add_options()
                 ("help,h", "print help messages")
-                ("input,f", po::value<std::string>(&input_xyz_file)->required(), "filename of the .xyz-file")
+                ("input,f", po::value<std::string>(&lin)->required(), "linear molecule")
                 ("constrain,c", po::value<std::string>(&constrain_line)->required(), "cs intervals,min,max")
                 ("basisfunction,q", po::value<std::string>(&bf_line)->required(), "target constrained basis functions")
                 ("basis,s", po::value<std::string>(&basisset)->required(), "name of the basis set");
@@ -94,10 +95,8 @@ int main (int argc, char** argv) {
 
     // Print the energy to an output file
     // Create and open a file: filename.xyz -> filename_doci_rhf_basisset.output
-    std::string output_filename = input_xyz_file;
-    std::string output_filename_log = input_xyz_file;
-    boost::replace_last(output_filename, ".xyz", std::string("_cf_") + basisset + std::string(".output"));
-    boost::replace_last(output_filename_log, ".xyz", std::string("_cf_") + basisset + std::string(".log"));
+    std::string output_filename = lin + "_crhf_" + ".output" ;
+    std::string output_filename_log = lin + "_crhf_" + ".log" ;
 
     std::ofstream output_file;
     std::ofstream output_log;
@@ -107,7 +106,18 @@ int main (int argc, char** argv) {
 
     // Actual calculations
     // Prepare molecular Hamiltonian parameters in the Löwdin basis
-    GQCP::Molecule molecule = GQCP::Molecule::Readxyz(input_xyz_file, +1);
+
+    std::vector<std::string> lin_split;
+    boost::split(lin_split, lin, boost::is_any_of("_"));
+
+    std::vector<GQCP::Atom> yo;
+
+    double x_pos = std::stod(lin_split[2])/2;
+
+    yo.emplace_back(GQCP::elements::elementToAtomicNumber(lin_split[0]), -x_pos, 0, 0);
+    yo.emplace_back(GQCP::elements::elementToAtomicNumber(lin_split[1]), x_pos, 0, 0);
+
+    GQCP::Molecule molecule (yo, +1);
     auto mol_ham_par = GQCP::HamiltonianParameters::Molecular(molecule, basisset);  // in the AO basis
 
 
@@ -162,11 +172,12 @@ int main (int argc, char** argv) {
         diis_scf_solver.solve();
         auto rhf = diis_scf_solver.get_solution();
         mol_ham_par.transform(rhf.get_C());
-         */
+        */
     }
 
-    const size_t iterations = 1000000/(5*(mol_ham_par.get_K()*mol_ham_par.get_K()));
-    const double thresh = 1e-8;
+    //const size_t iterations = 1000000/(5*(mol_ham_par.get_K()*mol_ham_par.get_K()));
+    const size_t iterations = 10000;
+    const double thresh = 1e-12;
 
     auto K = mol_ham_par.get_K();
     Eigen::MatrixXd gC = Eigen::MatrixXd::Identity(K, K);
@@ -185,9 +196,9 @@ int main (int argc, char** argv) {
             rhf = plain_scf_solver.get_solution();
         } catch (const std::exception& e) {
 
-            for (int x = 10; x>1; x--) {
+            for (int x = 6; x>1; x--) {
                 if (x==2) {
-                    std::cout << "\033[1;31m SCF FAILED IN: \033[0m" << input_xyz_file;
+                    std::cout << "\033[1;31m SCF FAILED IN: \033[0m" << lin;
                     da = true;
                 }
                 try {
