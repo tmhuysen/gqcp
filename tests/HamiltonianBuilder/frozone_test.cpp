@@ -68,13 +68,83 @@ BOOST_AUTO_TEST_CASE ( SelectedCI_vs_FFCI ) {
     Eigen::MatrixXd s_ham = random_sci.constructHamiltonian(random_hamiltonian_parameters);
     Eigen::MatrixXd f_ham = random_fci.constructHamiltonian(random_hamiltonian_parameters);
 
-    std::cout<<std::endl<<s_mv<<std::endl<<"----------------------"<<std::endl;
-    std::cout<<std::endl<<f_mv<<std::endl<<"- - - - - - - - - - - - - - - - - - - - - -"<<std::endl;
-
-    std::cout<<std::endl<<s_ham<<std::endl<<"----------------------"<<std::endl;
-    std::cout<<std::endl<<f_ham<<std::endl;
 
     BOOST_CHECK(sx.isApprox(fx));
     BOOST_CHECK(s_mv.isApprox(f_mv));
     BOOST_CHECK(s_ham.isApprox(f_ham));
 }
+
+
+
+BOOST_AUTO_TEST_CASE ( SelectedCI_vs_FFCI2 ) {
+
+    // Create H-chain HamiltonianParameters to test results
+    size_t K = 6;
+    size_t N = 4;
+    size_t freeze = 2;
+    GQCP::Molecule H5 = GQCP::Molecule::HChain(K, 1.1);
+    auto random_hamiltonian_parameters = GQCP::HamiltonianParameters::Molecular(H5, "STO-3G");
+
+    // Create compatible Fock spaces
+    GQCP::ProductFockSpace product_fock_space (K, N, N);
+    GQCP::SelectedFockSpace fock_space (product_fock_space, freeze);
+
+    // The SelectedFockSpace includes the same configurations as the ProductFockSpace
+    // These builder instances should return the same results.
+    GQCP::SelectedCI random_sci (fock_space);
+    GQCP::FFCI random_fci (product_fock_space, freeze);
+
+    Eigen::VectorXd sx = random_sci.calculateDiagonal(random_hamiltonian_parameters);
+    Eigen::VectorXd fx = random_fci.calculateDiagonal(random_hamiltonian_parameters);
+
+
+
+    Eigen::VectorXd s_mv = random_sci.matrixVectorProduct(random_hamiltonian_parameters, sx, sx);
+    Eigen::VectorXd f_mv = random_fci.matrixVectorProduct(random_hamiltonian_parameters, fx, fx);
+
+    Eigen::MatrixXd s_ham = random_sci.constructHamiltonian(random_hamiltonian_parameters);
+    Eigen::MatrixXd f_ham = random_fci.constructHamiltonian(random_hamiltonian_parameters);
+
+
+    BOOST_CHECK(sx.isApprox(fx));
+    BOOST_CHECK(s_mv.isApprox(f_mv));
+    BOOST_CHECK(s_ham.isApprox(f_ham));
+}
+
+
+
+BOOST_AUTO_TEST_CASE ( SelectedCI_vs_FFCI3) {
+
+    // Create H-chain HamiltonianParameters to test results
+    size_t K = 7;
+    size_t N = 5;
+    size_t freeze = 3;
+    GQCP::Molecule H5 = GQCP::Molecule::HChain(K, 1.1);
+    auto random_hamiltonian_parameters = GQCP::HamiltonianParameters::Molecular(H5, "STO-3G");
+
+    // Create compatible Fock spaces
+    GQCP::ProductFockSpace product_fock_space (K, N, N);
+    GQCP::SelectedFockSpace fock_space (product_fock_space, freeze);
+
+    // The SelectedFockSpace includes the same configurations as the ProductFockSpace
+    // These builder instances should return the same results.
+    GQCP::SelectedCI random_sci (fock_space);
+    GQCP::FFCI random_fci (product_fock_space, freeze);
+
+    Eigen::VectorXd sx = random_sci.calculateDiagonal(random_hamiltonian_parameters);
+    Eigen::VectorXd fx = random_fci.calculateDiagonal(random_hamiltonian_parameters);
+
+
+
+    Eigen::VectorXd s_mv = random_sci.matrixVectorProduct(random_hamiltonian_parameters, sx, sx);
+    Eigen::VectorXd f_mv = random_fci.matrixVectorProduct(random_hamiltonian_parameters, fx, fx);
+
+    Eigen::MatrixXd s_ham = random_sci.constructHamiltonian(random_hamiltonian_parameters);
+    Eigen::MatrixXd f_ham = random_fci.constructHamiltonian(random_hamiltonian_parameters);
+
+
+    BOOST_CHECK(sx.isApprox(fx));
+    BOOST_CHECK(s_mv.isApprox(f_mv));
+    BOOST_CHECK(s_ham.isApprox(f_ham));
+}
+

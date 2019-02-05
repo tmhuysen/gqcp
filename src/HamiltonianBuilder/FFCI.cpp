@@ -36,9 +36,22 @@ Eigen::MatrixXd FFCI::constructHamiltonian(const HamiltonianParameters& hamilton
     auto g = hamiltonian_parameters.get_g();
 
     Eigen::VectorXd one = Eigen::VectorXd::Ones(ffock_space.get_dimension());
+
+    double value = 0;
     for (size_t i = 0; i < this->N; i++) {
-        ha += (2*k(i,i) + g(i,i,i,i)) * one.asDiagonal();
+
+        value += 2*k(i,i) + g(i,i,i,i);
+
+        for (size_t j = i+1; j < this->N; j++) {
+            value += 2*g(i,i,j,j);
+            value += 2*g(j,j,i,i);
+            value -= g(j,i,i,j);
+            value -= g(i,j,j,i);
+        }
     }
+
+    ha += (value * one).asDiagonal();
+
 
     return ha;
 }
@@ -70,9 +83,22 @@ Eigen::VectorXd FFCI::calculateDiagonal(const HamiltonianParameters& hamiltonian
     auto g = hamiltonian_parameters.get_g();
     Eigen::VectorXd one = Eigen::VectorXd::Ones(ffock_space.get_dimension());
 
+    double value = 0;
     for (size_t i = 0; i < this->N; i++) {
-        ndia += (2*k(i,i) + g(i,i,i,i))  * one;
+
+        value += 2*k(i,i) + g(i,i,i,i);
+
+        for (size_t j = i+1; j < this->N; j++) {
+            value += 2*g(i,i,j,j);
+            value += 2*g(j,j,i,i);
+            value -= g(j,i,i,j);
+            value -= g(i,j,j,i);
+        }
+
     }
+
+    ndia += value * one;
+
     return ndia;
 }
 
