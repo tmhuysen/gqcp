@@ -696,5 +696,70 @@ HamiltonianParameters HamiltonianParameters::constrain(const TwoElectronOperator
     return HamiltonianParameters(this->ao_basis, this->S, this->h, gc, this->T_total);
 }
 
+// DEV
+/**
+ */
+HamiltonianParameters HamiltonianParameters::freeze(size_t freeze) const {
+    size_t Kn = K-freeze;
+
+    std::shared_ptr<AOBasis> ao_basis;  // nullptr
+
+
+    OneElectronOperator S (this->S.get_matrix_representation().block(freeze, freeze, Kn, Kn));
+
+    Eigen::MatrixXd hc(h.get_matrix_representation().block(freeze, freeze, Kn, Kn));
+
+    Eigen::Tensor<double, 4> g_SO (Kn, Kn, Kn, Kn);
+    g_SO.setZero();
+
+    for (int i = freeze; i < K; i++) {
+        for (int j = freeze; j < K; j++) {
+            for (int l = freeze; l < K; l++) {
+                for (int m = freeze; m < K; m++) {
+                    g_SO(i - freeze, j - freeze, l - freeze, m - freeze) = this->g(i,j,l,m);
+                }
+            }
+        }
+    }
+
+
+
+    for (int i = 0; i < Kn; i++) {
+        size_t q = i + freeze;
+        for (int l = 0; l < freeze; l++) {
+
+            hc(i,i) += this->g(q, q, l, l);
+            hc(i,i) += this->g(l, l, q, q);
+            hc(i,i) -= this->g(q, l, l, q)/2;
+            hc(i,i) -= this->g(l, q, q, l)/2;
+        }
+
+
+        for (int j = i+1; j < Kn; j++) {
+
+            size_t p = j + freeze;
+
+            for (int l = 0; l < freeze; l++) {
+
+                hc(i,j) += this->g(q, p, l, l);
+                hc(i,j) += this->g(l, l, q, p);
+                hc(i,j) -= this->g(q, l, l, p)/2;
+                hc(i,j) -= this->g(l, p, q, l)/2;
+
+                hc(j,i) += this->g(p, q, l, l);
+                hc(j,i) += this->g(l, l, p, q);
+                hc(j,i) -= this->g(p, l, l, q)/2;
+                hc(j,i) -= this->g(l, q, p, l)/2;
+            }
+        }
+    }
+
+    OneElectronOperator H_core (hc);
+    Eigen::MatrixXd C = Eigen::MatrixXd(T_total.block(freeze, freeze, Kn, Kn));
+    TwoElectronOperator G (g_SO);
+
+    return HamiltonianParameters(ao_basis, S, H_core, G, C);
+};
+
 
 }  // namespace GQCP

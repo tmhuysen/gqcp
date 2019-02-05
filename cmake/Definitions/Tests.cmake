@@ -31,6 +31,7 @@ set(PROJECT_TEST_SOURCE_FILES
         ${PROJECT_TESTS_FOLDER}/HamiltonianBuilder/FCI_test.cpp
         ${PROJECT_TESTS_FOLDER}/HamiltonianBuilder/Hubbard_test.cpp
         ${PROJECT_TESTS_FOLDER}/HamiltonianBuilder/SelectedCI_test.cpp
+        ${PROJECT_TESTS_FOLDER}/HamiltonianBuilder/frozone_test.cpp
 
         ${PROJECT_TESTS_FOLDER}/HamiltonianParameters/HamiltonianParameters_test.cpp
 

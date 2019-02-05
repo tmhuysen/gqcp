@@ -269,65 +269,7 @@ public:
     // DEV
     /**
      */
-    HamiltonianParameters freeze(size_t freeze) const {
-        size_t Kn = K-freeze;
-
-        std::shared_ptr<AOBasis> ao_basis = this->ao_basis;  // nullptr
-
-
-        OneElectronOperator S (this->S.get_matrix_representation().block(freeze, freeze, Kn, Kn));
-
-        Eigen::MatrixXd hc(h.get_matrix_representation().block(freeze, freeze, Kn, Kn));
-
-        Eigen::Tensor<double, 4> g_SO (Kn, Kn, Kn, Kn);
-
-        for (int i = freeze; i < K; i++) {
-            for (int j = freeze; j < K; j++) {
-                for (int l = freeze; l < K; l++) {
-                    for (int m = freeze; m < K; m++) {
-                        g_SO(i - freeze, j - freeze, l - freeze, m - freeze) = this->g(i,j,l,m);
-                    }
-                }
-            }
-        }
-
-
-        for (int i = 0; i < Kn; i++) {
-            size_t q = i + freeze;
-            for (int l = 0; l < freeze; l++) {
-
-                hc(i,i) += this->g(q, l, l, q);
-                hc(i,i) += this->g(l, q, q, l);
-                hc(i,i) -= this->g(q, l, q, l)/2;
-                hc(i,i) -= this->g(l, q, l, q)/2;
-            }
-
-
-            for (int j = i+1; j < Kn; j++) {
-
-                size_t p = j + freeze;
-
-                for (int l = 0; l < freeze; l++) {
-
-                    hc(i,j) += this->g(q, l, l, p);
-                    hc(i,j) += this->g(l, q, p, l);
-                    hc(i,j) -= this->g(q, l, p, l)/2;
-                    hc(i,j) -= this->g(l, q, l, p)/2;
-
-                    hc(j,i) += this->g(p, l, l, q);
-                    hc(j,i) += this->g(l, p, q, l);
-                    hc(j,i) -= this->g(p, l, q, l)/2;
-                    hc(j,i) -= this->g(l, p, l, q)/2;
-                }
-            }
-        }
-
-        OneElectronOperator H_core (hc);
-        Eigen::MatrixXd C = Eigen::MatrixXd(T_total.block(freeze, freeze, Kn, Kn));
-        TwoElectronOperator G (g_SO);
-
-        return HamiltonianParameters(ao_basis, S, H_core, G, C);
-    };
+    HamiltonianParameters freeze(size_t freeze) const;
 };
 
 
