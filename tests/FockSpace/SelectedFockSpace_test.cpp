@@ -123,3 +123,21 @@ BOOST_AUTO_TEST_CASE ( reader_test ) {
     BOOST_CHECK(beta2_test == beta2_ref);
 
 }
+
+
+BOOST_AUTO_TEST_CASE ( frozencore_selected_ci ) {
+
+    GQCP::ProductFockSpace fock_space_product (5, 3, 3);
+
+    GQCP::SelectedFockSpace fock (fock_space_product, 1);
+
+    std::vector<std::string> reference_set_beta {"00111", "01011", "01101", "10011", "10101", "11001"};
+    std::vector<std::string> reference_set_alpha {"00111", "01011", "01101", "10011", "10101", "11001"};
+
+    for (size_t i = 0; i < fock.get_dimension(); i++) {
+        GQCP::Configuration configuration = fock.get_configuration(i);
+
+        BOOST_CHECK(reference_set_beta[i % 6] == configuration.onv_beta.asString());
+        BOOST_CHECK(reference_set_alpha[i / 6] == configuration.onv_alpha.asString());
+    }
+}

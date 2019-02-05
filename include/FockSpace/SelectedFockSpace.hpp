@@ -77,6 +77,45 @@ public:
     explicit SelectedFockSpace(const FockSpace& fock_space);
 
 
+    SelectedFockSpace(const ProductFockSpace& fock_space, size_t N) :
+            SelectedFockSpace (fock_space.get_K(), fock_space.get_N_alpha(), fock_space.get_N_beta())
+    {
+        ProductFockSpace fock_space_n (fock_space.get_K() - N, fock_space.get_N_alpha() - N, fock_space.get_N_beta() - N);
+
+
+        std::vector<Configuration> configurations;
+
+        const FockSpace& fock_space_alpha = fock_space_n.get_fock_space_alpha();
+        const FockSpace& fock_space_beta = fock_space_n.get_fock_space_beta();
+
+        auto dim_alpha = fock_space_alpha.get_dimension();
+        auto dim_beta = fock_space_beta.get_dimension();
+
+        ONV alpha = fock_space_alpha.makeONV(0);
+        for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {
+
+            ONV beta = fock_space_beta.makeONV(0);
+            for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {
+
+                size_t rep_a = (alpha.get_unsigned_representation() << N) + (pow(2,N) - 1);
+                size_t rep_b = (beta.get_unsigned_representation() << N) + (pow(2,N) - 1);
+                ONV alpha_n (K, N_alpha, rep_a);
+                ONV beta_n (K, N_beta, rep_b);
+                configurations.push_back(Configuration {alpha_n, beta_n});
+
+                if (I_beta < dim_beta - 1) {  // prevent the last permutation to occur
+                    fock_space_beta.setNextONV(beta);
+                }
+            }
+            if (I_alpha < dim_alpha - 1) {  // prevent the last permutation to occur
+                fock_space_alpha.setNextONV(alpha);
+            }
+        }
+        this->dim = fock_space_n.get_dimension();
+        this->configurations = configurations;
+
+    };
+
     // GETTERS
     size_t get_N_alpha() const { return this->N_alpha; }
     size_t get_N_beta() const { return this->N_beta; }
