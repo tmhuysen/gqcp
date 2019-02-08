@@ -37,7 +37,6 @@ private:
     FockSpace fock_space_alpha;
     FockSpace fock_space_beta;
 
-
 public:
     // CONSTRUCTORS
     /**
