@@ -20,7 +20,9 @@
 
 
 #include "FockSpace/BaseFockSpace.hpp"
+#include "FockSpace/FockPermutator.hpp"
 
+#include "ONV.hpp"
 
 
 namespace GQCP {
@@ -32,7 +34,7 @@ namespace GQCP {
  *  The ONVs and addresses are linked with a hashing function calculated with an addressing scheme. The implementation of the addressing scheme is from Molecular Electronic-Structure Theory (August 2000) by Trygve Helgaker, Poul Jorgensen, and Jeppe Olsen
  *
  */
-class FockSpace: public BaseFockSpace {
+class FockSpace: public BaseFockSpace, public FockPermutator {
 private:
     size_t N;  // number of electrons
     Matrixu vertex_weights;  // vertex_weights of the addressing scheme
@@ -50,6 +52,12 @@ private:
      */
     size_t ulongNextPermutation(size_t representation) const;
 
+    /**
+     *  @param representation      a representation of an ONV
+     *
+     *  @return the address (i.e. the ordering number) of the given ONV
+     */
+    size_t getAddress(size_t representation) const;
 
 public:
     // CONSTRUCTORS
@@ -87,21 +95,21 @@ public:
      *
      *  @return the ONV with the corresponding address
      */
-    ONV makeONV(size_t address) const;
+    ONV makeONV(size_t address) const override;
 
     /**
      *  Set the current ONV to the next ONV: performs ulongNextPermutation() and updates the corresponding occupation indices of the ONV occupation array
      *
      *  @param onv      the current ONV
      */
-    void setNextONV(ONV& onv) const;
+    void setNextONV(ONV& onv) const override;
 
     /**
      *  @param onv      the ONV
      *
      *  @return the address (i.e. the ordering number) of the given ONV
      */
-    size_t getAddress(const ONV& onv) const;
+    size_t getAddress(const ONV& onv) const override;
   
     /**
      *  Transform an ONV to one corresponding to the given address
@@ -109,7 +117,7 @@ public:
      *  @param onv          the ONV
      *  @param address      the address to which the ONV will be set
      */
-    void transformONV(ONV& onv, size_t address) const;
+    void transformONV(ONV& onv, size_t address) const override;
 
     /**
      *  @param onv       the ONV
