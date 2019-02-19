@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include <chrono>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
@@ -27,7 +29,8 @@ namespace po = boost::program_options;
 
 
 int main (int argc, char** argv) {
-
+    // Time of EXE 
+    auto start = std::chrono::high_resolution_clock::now();
     // Input processing
     std::string lin;
     std::string basisset;
@@ -264,6 +267,13 @@ int main (int argc, char** argv) {
 
     output_file.close();
     output_log.close();
+    
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    // Process the chrono time and output
+    auto elapsed_time = stop - start;           // in nanoseconds
+    auto seconds = elapsed_time.count() / 1e9;  // in seconds
+    std::cout << "HPC TIME" << " : " << seconds << std::endl;
 
     return 0;
 }
