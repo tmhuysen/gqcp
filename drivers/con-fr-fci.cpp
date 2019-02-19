@@ -10,6 +10,8 @@
 
 namespace po = boost::program_options;
 
+#define EIGEN_USE_MKL_ALL   // enable MKL in Eigen3
+
 #include "HamiltonianParameters/HamiltonianParameters.hpp"
 #include "CISolver/CISolver.hpp"
 #include "HamiltonianBuilder/FFCI.hpp"
