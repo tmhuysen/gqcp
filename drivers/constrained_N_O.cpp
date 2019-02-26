@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
 
     output_file.open(output_filename, std::fstream::out);
     output_log.open(output_filename_log, std::fstream::out);
-
+    output_log<<"init"<<std::endl;
 
     std::vector<GQCP::Atom> atom_list;
 
