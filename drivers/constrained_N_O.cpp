@@ -3,8 +3,6 @@
  */
 
 
-
-#define EIGEN_USE_MKL_ALL
 #include <fstream>
 #include <iomanip>
 #include <iostream>
