@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
     size_t N_alpha = 7;
     size_t N_beta = 7;
-    size_t X;
+    size_t X = 0;
 
     // Input processing
     std::string basisset;
