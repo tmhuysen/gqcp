@@ -15,12 +15,13 @@
 namespace po = boost::program_options;
 
 struct FCIComponents {
-    Eigen::SparseMatrix<double> beta_hamiltonian;
     Eigen::SparseMatrix<double> alpha_hamiltonian;
     std::vector<Eigen::SparseMatrix<double>> alpha_couplings;
     std::vector<Eigen::SparseMatrix<double>> beta_intermediates;
     Eigen::VectorXd diagonal;
     GQCP::ProductFockSpace fock_space;
+    Eigen::SparseMatrix<double> operators;
+    double lambda;
 };
 
 
@@ -49,7 +50,7 @@ Eigen::VectorXd open_matvec (const Eigen::VectorXd& x, const FCIComponents& comp
         }
     }
 
-    matvecmap += comp.alpha_hamiltonian * xmap + xmap * comp.beta_hamiltonian;
+    matvecmap += (comp.alpha_hamiltonian - comp.lambda * comp.operators) * xmap + xmap * (comp.alpha_hamiltonian - comp.lambda * comp.operators);
 
     return matvec;
 };
@@ -200,7 +201,6 @@ int main(int argc, char** argv) {
     auto beta_dim = active_space.get_fock_space_beta().get_dimension();
 
     // FCI PARAMETERS
-    Eigen::SparseMatrix<double> beta_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_beta(), frozen_ham_par);
     Eigen::SparseMatrix<double> alpha_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_alpha(), frozen_ham_par);
     std::vector<Eigen::SparseMatrix<double>> alpha_couplings = fci.calculateOneElectronCouplingsIntermediates(active_space.get_fock_space_alpha());
     std::vector<Eigen::SparseMatrix<double>> beta_intermediates(K*(K+1)/2, Eigen::SparseMatrix<double>(beta_dim, beta_dim));
@@ -219,7 +219,8 @@ int main(int argc, char** argv) {
     // MATVEC PARAMETERS
     GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
 
-    FCIComponents components {beta_hamiltonian, alpha_hamiltonian, alpha_couplings, beta_intermediates, diagonal, active_space};
+    Eigen::SparseMatrix<double> operator_dummy (beta_dim,beta_dim);
+    FCIComponents components {alpha_hamiltonian, alpha_couplings, beta_intermediates, diagonal, active_space, operator_dummy, 0};
 
     GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
     GQCP::DavidsonSolver solver(matrixVectorProduct, diagonal, davidson_options);
@@ -267,17 +268,15 @@ int main(int argc, char** argv) {
 
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(AOlist);
     Eigen::SparseMatrix<double> evaluated_constraint = fci.calculateSpinSeparatedOneElectronOperator(active_space.get_fock_space_beta(),  GQCP::OneElectronOperator<double>(mulliken_operator.block(X,X,K_active, K_active)));
-
+    components.operators = evaluated_constraint;
     for (size_t i = 0; i < lambdas.rows(); i++) {
 
         auto constrained_ham_par = mol_ham_par.constrain(mulliken_operator, lambdas(i));
         Eigen::VectorXd diagonal = frozen_core.calculateDiagonal(constrained_ham_par);
-        FCIComponents components2 = components;
-        components2.alpha_hamiltonian -= lambdas(i) * evaluated_constraint;
-        components2.beta_hamiltonian -= lambdas(i) * evaluated_constraint;
-        components2.diagonal = diagonal;
+        components.lambda = lambdas(i);
+        components.diagonal = diagonal;
 
-        GQCP::VectorFunction matrixVectorProduct = [&components2](const Eigen::VectorXd& x) { return open_matvec(x, components2); };
+        GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
         GQCP::DavidsonSolver solver(matrixVectorProduct, diagonal, davidson_solver_options2);
 
         // SOLVE
