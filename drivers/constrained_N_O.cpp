@@ -138,6 +138,7 @@ int main(int argc, char** argv) {
     auto mol_ham_par = GQCP::HamiltonianParameters<double>::Molecular(molecule, basisset);  // in the AO basis
     auto K = mol_ham_par.get_K();
 
+    std::cout<<"START fragmental DIIS"<<std::endl;
     try {
         // define individual atoms as molecular fractions
         GQCP::Molecule mol_fraction1(std::vector<GQCP::Atom>{atom1}, +1);
@@ -165,6 +166,7 @@ int main(int argc, char** argv) {
 
         // Perform DIIS with the new basis if this fails Lodwin orthonormalize
         try {
+            std::cout<<"START full DIIS"<<std::endl;
             GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-12, 500);
             diis_scf_solver.solve();
             auto rhf = diis_scf_solver.get_solution();
@@ -201,11 +203,16 @@ int main(int argc, char** argv) {
     auto beta_dim = active_space.get_fock_space_beta().get_dimension();
 
     // FCI PARAMETERS
+
+    std::cout<<"CALCULATE PARAMETERS FCI"<<std::endl;
+
     Eigen::SparseMatrix<double> alpha_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_alpha(), frozen_ham_par);
     std::vector<Eigen::SparseMatrix<double>> alpha_couplings = fci.calculateOneElectronCouplingsIntermediates(active_space.get_fock_space_alpha());
     std::vector<Eigen::SparseMatrix<double>> beta_intermediates(K*(K+1)/2, Eigen::SparseMatrix<double>(beta_dim, beta_dim));
 
     size_t K_active = active_space.get_K();
+
+    std::cout<<"BETAS PARAMETER FCI"<<std::endl;
 
     for (size_t p = 0; p < K_active; p++) {
         beta_intermediates[p*(K_active+K_active+1-p)/2] = fci.calculateTwoElectronIntermediate(p, p, frozen_ham_par, active_space.get_fock_space_beta());
@@ -213,6 +220,8 @@ int main(int argc, char** argv) {
             beta_intermediates[p*(K_active+K_active+1-p)/2 + q - p] = fci.calculateTwoElectronIntermediate(p, q, frozen_ham_par, active_space.get_fock_space_beta());
         }
     }
+
+    std::cout<<"BETAS-DONE"<<std::endl;
 
     Eigen::VectorXd diagonal = frozen_core.calculateDiagonal(mol_ham_par);
 
@@ -222,11 +231,13 @@ int main(int argc, char** argv) {
     Eigen::SparseMatrix<double> operator_dummy (beta_dim,beta_dim);
     FCIComponents components {alpha_hamiltonian, alpha_couplings, beta_intermediates, diagonal, active_space, operator_dummy, 0};
 
+    std::cout<<"INIT MATVEC"<<std::endl;
     GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
     GQCP::DavidsonSolver solver(matrixVectorProduct, diagonal, davidson_options);
 
     // SOLVE
     try {
+        std::cout<<"DAVIDSON1"<<std::endl;
         solver.solve();
     } catch (const std::exception& e) {
         output_log << e.what() << "lambda: " << 0 << std::endl;
@@ -258,10 +269,12 @@ int main(int argc, char** argv) {
     frozen_fci_calculator.set_coefficients(fci_coefficients);
     GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;
 
+    std::cout<<"NATURALS"<<std::endl;
     Eigen::MatrixXd one_dm_base = D.get_matrix_representation();
     Eigen::MatrixXd natural_vectors = D.diagonalize().rowwise().reverse();
     Eigen::VectorXd naturals = D.get_matrix_representation().diagonal().reverse();
 
+    std::cout<<"NATURALS DONE"<<std::endl;
 
     GQCP::DavidsonSolverOptions davidson_solver_options2(fci_coefficients);
 
@@ -281,6 +294,7 @@ int main(int argc, char** argv) {
 
         // SOLVE
         try {
+            std::cout<<"DAVIDSON LAMBDA: "<<lambdas(i)<<std::endl;
             solver.solve();
         } catch (const std::exception& e) {
             output_log << e.what() << "lambda: " << lambdas(i) << std::endl;
