@@ -122,7 +122,11 @@ int main(int argc, char** argv) {
 
     output_file.open(output_filename, std::fstream::out);
     output_log.open(output_filename_log, std::fstream::out);
-    output_log<<"init"<<std::endl;
+    output_log << "init" <<s std::endl;
+    output_log << "Version: " << std::setprecision(15) << GQCP_GIT_SHA1 <<  std::endl;
+    output_log << "selected BF: " << std::setprecision(15) << std::endl << bfsv.transpose() << std::endl;
+    output_log << "Frozencore? : " << std::setprecision(15) << std::endl << X << std::endl;
+    output_log << "selected lambdas: " << std::setprecision(15) << std::endl << lambdas.transpose() << std::endl;
 
     std::vector<GQCP::Atom> atom_list;
 
@@ -203,33 +207,34 @@ int main(int argc, char** argv) {
     auto beta_dim = active_space.get_fock_space_beta().get_dimension();
 
     // FCI PARAMETERS
-
+    // init comp
+    FCIComponents components;
     std::cout<<"CALCULATE PARAMETERS FCI"<<std::endl;
 
-    Eigen::SparseMatrix<double> alpha_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_alpha(), frozen_ham_par);
-    std::vector<Eigen::SparseMatrix<double>> alpha_couplings = fci.calculateOneElectronCouplingsIntermediates(active_space.get_fock_space_alpha());
-    std::vector<Eigen::SparseMatrix<double>> beta_intermediates(K*(K+1)/2, Eigen::SparseMatrix<double>(beta_dim, beta_dim));
+    components.alpha_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_alpha(), frozen_ham_par);
+    components.alpha_couplings = fci.calculateOneElectronCouplingsIntermediates(active_space.get_fock_space_alpha());
+    components.beta_intermediates(K*(K+1)/2, Eigen::SparseMatrix<double>(beta_dim, beta_dim));
 
     size_t K_active = active_space.get_K();
 
     std::cout<<"BETAS PARAMETER FCI"<<std::endl;
 
     for (size_t p = 0; p < K_active; p++) {
-        beta_intermediates[p*(K_active+K_active+1-p)/2] = fci.calculateTwoElectronIntermediate(p, p, frozen_ham_par, active_space.get_fock_space_beta());
+        components.beta_intermediates[p*(K_active+K_active+1-p)/2] = fci.calculateTwoElectronIntermediate(p, p, frozen_ham_par, active_space.get_fock_space_beta());
         for (size_t q = p + 1; q < K_active; q++) {
-            beta_intermediates[p*(K_active+K_active+1-p)/2 + q - p] = fci.calculateTwoElectronIntermediate(p, q, frozen_ham_par, active_space.get_fock_space_beta());
+            components.beta_intermediates[p*(K_active+K_active+1-p)/2 + q - p] = fci.calculateTwoElectronIntermediate(p, q, frozen_ham_par, active_space.get_fock_space_beta());
         }
     }
 
     std::cout<<"BETAS-DONE"<<std::endl;
 
-    Eigen::VectorXd diagonal = frozen_core.calculateDiagonal(mol_ham_par);
+    components.diagonal = frozen_core.calculateDiagonal(mol_ham_par);
 
     // MATVEC PARAMETERS
     GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
 
-    Eigen::SparseMatrix<double> operator_dummy (beta_dim,beta_dim);
-    FCIComponents components {alpha_hamiltonian, alpha_couplings, beta_intermediates, diagonal, active_space, operator_dummy, 0};
+    components.operator_dummy (beta_dim,beta_dim);
+    components.lambda = 0;
 
     std::cout<<"INIT MATVEC"<<std::endl;
     GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
@@ -285,9 +290,8 @@ int main(int argc, char** argv) {
     for (size_t i = 0; i < lambdas.rows(); i++) {
 
         auto constrained_ham_par = mol_ham_par.constrain(mulliken_operator, lambdas(i));
-        Eigen::VectorXd diagonal = frozen_core.calculateDiagonal(constrained_ham_par);
         components.lambda = lambdas(i);
-        components.diagonal = diagonal;
+        components.diagonal = frozen_core.calculateDiagonal(constrained_ham_par);;
 
         GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
         GQCP::DavidsonSolver solver(matrixVectorProduct, diagonal, davidson_solver_options2);
@@ -328,15 +332,11 @@ int main(int argc, char** argv) {
     Eigen::Map<GQCP::VectorXs> bfmap (AOlist.data(), AOlist.size());
     GQCP::VectorXs bfsv (bfmap);
 
-    output_log << "selected BF: " << std::setprecision(15) << std::endl << bfsv.transpose() << std::endl;
-    output_log << "Frozencore? : " << std::setprecision(15) << std::endl << X << std::endl;
-    output_log << "selected lambdas: " << std::setprecision(15) << std::endl << lambdas.transpose() << std::endl;
     output_log << "RDM (no constraint): " << std::setprecision(15) << std::endl << one_dm_base << std::endl;
     output_log << "RDM Eigenvectors: " << std::setprecision(15) << std::endl << natural_vectors << std::endl;
     output_log << "Total C: " << std::setprecision(15) << std::endl << mol_ham_par.get_T_total() << std::endl;
     output_log << "Basis set used: " << std::setprecision(15) << basisset << std::endl;
     output_log << "Naturals: " << std::setprecision(15) << std::endl << naturals.transpose() << std::endl;
-    output_log << "Version: " << std::setprecision(15) << GQCP_GIT_SHA1 <<  std::endl;
 
     output_file.close();
     output_log.close();
