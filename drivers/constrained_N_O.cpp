@@ -15,11 +15,13 @@
 namespace po = boost::program_options;
 
 struct FCIComponents {
+    FCIComponents(const GQCP::ProductFockSpace& fock_space) : fock_space(fock_space) {}
     Eigen::SparseMatrix<double> alpha_hamiltonian;
     std::vector<Eigen::SparseMatrix<double>> alpha_couplings;
     std::vector<Eigen::SparseMatrix<double>> beta_intermediates;
     Eigen::VectorXd diagonal;
     GQCP::ProductFockSpace fock_space;
+
     Eigen::SparseMatrix<double> operators;
     double lambda;
 };
@@ -122,9 +124,8 @@ int main(int argc, char** argv) {
 
     output_file.open(output_filename, std::fstream::out);
     output_log.open(output_filename_log, std::fstream::out);
-    output_log << "init" <<s std::endl;
+    output_log << "init" <<std::endl;
     output_log << "Version: " << std::setprecision(15) << GQCP_GIT_SHA1 <<  std::endl;
-    output_log << "selected BF: " << std::setprecision(15) << std::endl << bfsv.transpose() << std::endl;
     output_log << "Frozencore? : " << std::setprecision(15) << std::endl << X << std::endl;
     output_log << "selected lambdas: " << std::setprecision(15) << std::endl << lambdas.transpose() << std::endl;
 
@@ -196,6 +197,11 @@ int main(int argc, char** argv) {
         AOlist.push_back(i);
     }
 
+    Eigen::Map<GQCP::VectorXs> bfmap (AOlist.data(), AOlist.size());
+    GQCP::VectorXs bfsv (bfmap);
+
+    output_log << "selected BF: " << std::setprecision(15) << std::endl << bfsv.transpose() << std::endl;
+
     GQCP::FrozenProductFockSpace fock_space (K, N_alpha, N_beta, X);
     const GQCP::ProductFockSpace &active_space = fock_space.get_active_product_fock_space();
 
@@ -208,12 +214,12 @@ int main(int argc, char** argv) {
 
     // FCI PARAMETERS
     // init comp
-    FCIComponents components;
+    FCIComponents components(active_space);
     std::cout<<"CALCULATE PARAMETERS FCI"<<std::endl;
 
     components.alpha_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_alpha(), frozen_ham_par);
     components.alpha_couplings = fci.calculateOneElectronCouplingsIntermediates(active_space.get_fock_space_alpha());
-    components.beta_intermediates(K*(K+1)/2, Eigen::SparseMatrix<double>(beta_dim, beta_dim));
+    components.beta_intermediates = std::vector<Eigen::SparseMatrix<double>>(K*(K+1)/2, Eigen::SparseMatrix<double>(beta_dim, beta_dim));
 
     size_t K_active = active_space.get_K();
 
@@ -233,12 +239,12 @@ int main(int argc, char** argv) {
     // MATVEC PARAMETERS
     GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
 
-    components.operator_dummy (beta_dim,beta_dim);
+    components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
     components.lambda = 0;
 
     std::cout<<"INIT MATVEC"<<std::endl;
     GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
-    GQCP::DavidsonSolver solver(matrixVectorProduct, diagonal, davidson_options);
+    GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_options);
 
     // SOLVE
     try {
@@ -294,7 +300,7 @@ int main(int argc, char** argv) {
         components.diagonal = frozen_core.calculateDiagonal(constrained_ham_par);;
 
         GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
-        GQCP::DavidsonSolver solver(matrixVectorProduct, diagonal, davidson_solver_options2);
+        GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_solver_options2);
 
         // SOLVE
         try {
@@ -329,8 +335,6 @@ int main(int argc, char** argv) {
 
     output_log << "mullikenoperator: " << std::setprecision(15) << std::endl << mulliken_operator << std::endl;
 
-    Eigen::Map<GQCP::VectorXs> bfmap (AOlist.data(), AOlist.size());
-    GQCP::VectorXs bfsv (bfmap);
 
     output_log << "RDM (no constraint): " << std::setprecision(15) << std::endl << one_dm_base << std::endl;
     output_log << "RDM Eigenvectors: " << std::setprecision(15) << std::endl << natural_vectors << std::endl;
