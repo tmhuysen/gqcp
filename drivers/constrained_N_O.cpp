@@ -289,7 +289,8 @@ int main(int argc, char** argv) {
 
     GQCP::DavidsonSolverOptions davidson_solver_options2(fci_coefficients);
 
-
+    davidson_solver_options2.maximum_number_of_iterations = 2000;
+    davidson_solver_options2.collapsed_subspace_dimension = 6;
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(AOlist);
     Eigen::SparseMatrix<double> evaluated_constraint = fci.calculateSpinSeparatedOneElectronOperator(active_space.get_fock_space_beta(),  GQCP::OneElectronOperator<double>(mulliken_operator.block(X,X,K_active, K_active)));
     components.operators = evaluated_constraint;
@@ -306,9 +307,10 @@ int main(int argc, char** argv) {
         try {
             std::cout<<"DAVIDSON LAMBDA: "<<lambdas(i)<<std::endl;
             solver.solve();
+            solver
         } catch (const std::exception& e) {
-            output_log << e.what() << "lambda: " << lambdas(i) << std::endl;
-            std::cout << "\033[1;31m DAVIDSON FAILED \033[0m";
+            output_log << e.what() << "lambda: " << lambdas(i);
+            std::cout << "\033[1;31m DAVIDSON FAILED \033[0m" << std::endl;
             continue;
         }
 
