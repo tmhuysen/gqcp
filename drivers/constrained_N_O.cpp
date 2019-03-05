@@ -119,6 +119,9 @@ int main(int argc, char** argv) {
     std::string output_filename = atom_str1 + "_" + atom_str2 + "_" + distance_string + "_constrained_fci_" + basisset + ".out" ;
     std::string output_filename_log = atom_str1 + "_" + atom_str2 + "_" + distance_string + "_constrained_fci_" + basisset + ".log" ;
 
+    // print the file.out name
+    std::cout<<output_filename<<std::endl;
+
     std::ofstream output_file;
     std::ofstream output_log;
 
