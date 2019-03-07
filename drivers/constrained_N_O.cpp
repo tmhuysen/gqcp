@@ -68,6 +68,7 @@ int main(int argc, char** argv) {
     size_t N_alpha = 7;
     size_t N_beta = 7;
     size_t X = 0;
+    std::string name = ""
 
     // Input processing
     std::string basisset;
@@ -84,6 +85,7 @@ int main(int argc, char** argv) {
                 ("constraint,c", po::value<std::string>(&lambda_string)->required(), "cs of all lambdas")
                 ("basis,s", po::value<std::string>(&basisset)->required(), "name of the basis set")
                 ("frozencores,x", po::value<size_t>(&X)->default_value(0), "freeze amount of orbitals")
+                ("name,e", po::value<std::string>(&name)->default_value(""), "name extension for the file")
                 ("test,t", po::value<bool>(&run_test)->default_value(false)->implicit_value(true), "test the executable");
 
         po::store(po::parse_command_line(argc, argv, desc), variables_map);
@@ -100,6 +102,9 @@ int main(int argc, char** argv) {
         std::cerr << "ERROR: you have not specified all arguments. Please use the -h flag for more information." << std::endl << std::endl;
     }
 
+    if (name.length > 0) {
+        name = "_" + name
+    }
     // extract the lambdas
     std::vector<std::string> splitted_line_lambda;
     boost::split(splitted_line_lambda, lambda_string, boost::is_any_of(","));
@@ -116,11 +121,10 @@ int main(int argc, char** argv) {
     distance_string_precursor << std::setprecision(2) << distance;
     std::string distance_string = distance_string_precursor.str();
 
-    std::string output_filename = atom_str1 + "_" + atom_str2 + "_" + distance_string + "_constrained_fci_" + basisset + ".out" ;
-    std::string output_filename_log = atom_str1 + "_" + atom_str2 + "_" + distance_string + "_constrained_fci_" + basisset + ".log" ;
+    std::string output_filename = atom_str1 + "_" + atom_str2 + "_" + distance_string + "_constrained_fci_" + basisset + name + ".out" ;
+    std::string output_filename_log = atom_str1 + "_" + atom_str2 + "_" + distance_string + "_constrained_fci_" + basisset + name + ".log" ;
 
     // print the file.out name
-    std::cout<<output_filename<<std::endl;
 
     std::ofstream output_file;
     std::ofstream output_log;
@@ -146,7 +150,6 @@ int main(int argc, char** argv) {
     auto mol_ham_par = GQCP::HamiltonianParameters<double>::Molecular(molecule, basisset);  // in the AO basis
     auto K = mol_ham_par.get_K();
 
-    std::cout<<"START fragmental DIIS"<<std::endl;
     try {
         // define individual atoms as molecular fractions
         GQCP::Molecule mol_fraction1(std::vector<GQCP::Atom>{atom1}, +1);
@@ -174,7 +177,6 @@ int main(int argc, char** argv) {
 
         // Perform DIIS with the new basis if this fails Lodwin orthonormalize
         try {
-            std::cout<<"START full DIIS"<<std::endl;
             GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-12, 500);
             diis_scf_solver.solve();
             auto rhf = diis_scf_solver.get_solution();
@@ -218,7 +220,6 @@ int main(int argc, char** argv) {
     // FCI PARAMETERS
     // init comp
     FCIComponents components(active_space);
-    std::cout<<"CALCULATE PARAMETERS FCI"<<std::endl;
 
     components.alpha_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_alpha(), frozen_ham_par);
     components.alpha_couplings = fci.calculateOneElectronCouplingsIntermediates(active_space.get_fock_space_alpha());
@@ -226,7 +227,6 @@ int main(int argc, char** argv) {
 
     size_t K_active = active_space.get_K();
 
-    std::cout<<"BETAS PARAMETER FCI"<<std::endl;
 
     for (size_t p = 0; p < K_active; p++) {
         components.beta_intermediates[p*(K_active+K_active+1-p)/2] = fci.calculateTwoElectronIntermediate(p, p, frozen_ham_par, active_space.get_fock_space_beta());
@@ -235,7 +235,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::cout<<"BETAS-DONE"<<std::endl;
 
     components.diagonal = frozen_core.calculateDiagonal(mol_ham_par);
 
@@ -245,13 +244,11 @@ int main(int argc, char** argv) {
     components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
     components.lambda = 0;
 
-    std::cout<<"INIT MATVEC"<<std::endl;
     GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
     GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_options);
 
     // SOLVE
     try {
-        std::cout<<"DAVIDSON1"<<std::endl;
         solver.solve();
     } catch (const std::exception& e) {
         output_log << e.what() << "lambda: " << 0 << std::endl;
@@ -283,12 +280,9 @@ int main(int argc, char** argv) {
     frozen_fci_calculator.set_coefficients(fci_coefficients);
     GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;
 
-    std::cout<<"NATURALS"<<std::endl;
     Eigen::MatrixXd one_dm_base = D.get_matrix_representation();
     Eigen::MatrixXd natural_vectors = D.diagonalize().rowwise().reverse();
     Eigen::VectorXd naturals = D.get_matrix_representation().diagonal().reverse();
-
-    std::cout<<"NATURALS DONE"<<std::endl;
 
     GQCP::DavidsonSolverOptions davidson_solver_options2(fci_coefficients);
 
@@ -308,12 +302,10 @@ int main(int argc, char** argv) {
 
         // SOLVE
         try {
-            std::cout<<"DAVIDSON LAMBDA: "<<lambdas(i)<<std::endl;
             solver.solve();
-            solver
         } catch (const std::exception& e) {
             output_log << e.what() << "lambda: " << lambdas(i);
-            std::cout << "\033[1;31m DAVIDSON FAILED \033[0m" << std::endl;
+            output_log << "\033[1;31m DAVIDSON FAILED \033[0m" << std::endl;
             continue;
         }
 
@@ -332,6 +324,7 @@ int main(int argc, char** argv) {
 
         output_log << "TOTAL ENERGY: " << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t lambda: " << lambdas(i) << "\t population of target: " << mul << std::endl;
         output_file << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t" << lambdas(i) << "\t" << mul << "\t" << entropy << std::endl;
+        std::cout << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t" << lambdas(i) << "\t" << mul << "\t" << entropy << std::endl;
         output_log << "1RDM: " << std::setprecision(15) << std::endl << D.get_matrix_representation() << std::endl;
         output_log << "First eigenvector coefficient: " << std::setprecision(15) << fci_coefficients(0) << std::endl;
         output_log << "Shannon Entropy: " << std::setprecision(15) << entropy << std::endl;
@@ -355,7 +348,7 @@ int main(int argc, char** argv) {
     // Process the chrono time and output
     auto elapsed_time = stop - start;           // in nanoseconds
     auto seconds = elapsed_time.count() / 1e9;  // in seconds
-    std::cout << "TOTAL EXECUTABLE TIME" << " : " << seconds << " seconds" << std::endl;
+    output_log << "TOTAL EXECUTABLE TIME" << " : " << seconds << " seconds" << std::endl;
 
     return 0;
 }
