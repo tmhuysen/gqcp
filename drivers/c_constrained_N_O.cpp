@@ -14,48 +14,7 @@
 
 namespace po = boost::program_options;
 
-struct FCIComponents {
-    FCIComponents(const GQCP::ProductFockSpace& fock_space) : fock_space(fock_space) {}
-    Eigen::SparseMatrix<double> alpha_hamiltonian;
-    std::vector<Eigen::SparseMatrix<double>> alpha_couplings;
-    std::vector<Eigen::SparseMatrix<double>> beta_intermediates;
-    Eigen::VectorXd diagonal;
-    GQCP::ProductFockSpace fock_space;
 
-    Eigen::SparseMatrix<double> operators;
-    double lambda;
-};
-
-
-
-Eigen::VectorXd open_matvec (const Eigen::VectorXd& x, const FCIComponents& comp) {
-
-    auto K = comp.fock_space.get_K();
-
-    const GQCP::FockSpace& fock_space_alpha = comp.fock_space.get_fock_space_alpha();
-    const GQCP::FockSpace& fock_space_beta = comp.fock_space.get_fock_space_beta();
-
-    auto dim_alpha = fock_space_alpha.get_dimension();
-    auto dim_beta = fock_space_beta.get_dimension();
-
-    Eigen::VectorXd matvec = comp.diagonal.cwiseProduct(x);
-
-    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> matvecmap(matvec.data(), dim_alpha, dim_beta);
-    Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> xmap(x.data(), dim_alpha, dim_beta);
-
-    for (size_t p = 0; p < K; p++) {
-        // sigma(pp) * X * theta(pp)
-        matvecmap += comp.alpha_couplings[p*(K+K+1-p)/2] * xmap * comp.beta_intermediates[p*(K+K+1-p)/2];
-        for (size_t q = p + 1; q<K; q++) {
-            // (sigma(pq) + sigma(qp)) * X * theta(pq)
-            matvecmap += comp.alpha_couplings[p*(K+K+1-p)/2 + q - p] * xmap * comp.beta_intermediates[p*(K+K+1-p)/2 + q - p];
-        }
-    }
-
-    matvecmap += (comp.alpha_hamiltonian - comp.lambda * comp.operators) * xmap + xmap * (comp.alpha_hamiltonian - comp.lambda * comp.operators);
-
-    return matvec;
-};
 
 int main(int argc, char** argv) {
 
@@ -69,7 +28,7 @@ int main(int argc, char** argv) {
     size_t N_beta = 7;
     size_t X = 0;
     std::string name = "";
-
+    bool naturals = false;
     // Input processing
     std::string basisset;
     double distance;
@@ -86,8 +45,7 @@ int main(int argc, char** argv) {
                 ("basis,s", po::value<std::string>(&basisset)->required(), "name of the basis set")
                 ("frozencores,x", po::value<size_t>(&X)->default_value(0), "freeze amount of orbitals")
                 ("name,e", po::value<std::string>(&name)->default_value(""), "name extension for the file")
-                ("test,t", po::value<bool>(&run_test)->default_value(false)->implicit_value(true), "test the executable");
-
+                ("naturals,n", po::value<bool>(&naturals)->default_value(false)->implicit_value(true), "name extension for the file");
         po::store(po::parse_command_line(argc, argv, desc), variables_map);
 
         if (variables_map.count("help")) {
@@ -135,6 +93,7 @@ int main(int argc, char** argv) {
     output_log << "Version: " << std::setprecision(15) << GQCP_GIT_SHA1 <<  std::endl;
     output_log << "Frozencore? : " << std::setprecision(15) << std::endl << X << std::endl;
     output_log << "selected lambdas: " << std::setprecision(15) << std::endl << lambdas.transpose() << std::endl;
+    output_log << "NATURALS?: " << std::setprecision(15) << naturals << std::endl;
 
     std::vector<GQCP::Atom> atom_list;
 
@@ -194,8 +153,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-
-
     // chose first half of AO as constrain targets
     std::vector<size_t> AOlist;
     for (size_t i = 0; i < K/2; i++) {
@@ -208,69 +165,19 @@ int main(int argc, char** argv) {
     output_log << "selected BF: " << std::setprecision(15) << std::endl << bfsv.transpose() << std::endl;
 
     GQCP::FrozenProductFockSpace fock_space (K, N_alpha, N_beta, X);
-    const GQCP::ProductFockSpace &active_space = fock_space.get_active_product_fock_space();
-
     GQCP::FrozenCoreFCI frozen_core (fock_space);
-    GQCP::FCI fci (active_space);
-
-
-    GQCP::HamiltonianParameters<double> frozen_ham_par = frozen_core.freezeHamiltonianParameters(mol_ham_par, X);
-    auto beta_dim = active_space.get_fock_space_beta().get_dimension();
-
-    // FCI PARAMETERS
-    // init comp
-    FCIComponents components(active_space);
-
-    components.alpha_hamiltonian = fci.calculateSpinSeparatedHamiltonian(active_space.get_fock_space_alpha(), frozen_ham_par);
-    components.alpha_couplings = fci.calculateOneElectronCouplingsIntermediates(active_space.get_fock_space_alpha());
-    components.beta_intermediates = std::vector<Eigen::SparseMatrix<double>>(K*(K+1)/2, Eigen::SparseMatrix<double>(beta_dim, beta_dim));
-
-    size_t K_active = active_space.get_K();
-
-
-    for (size_t p = 0; p < K_active; p++) {
-        components.beta_intermediates[p*(K_active+K_active+1-p)/2] = fci.calculateTwoElectronIntermediate(p, p, frozen_ham_par, active_space.get_fock_space_beta());
-        for (size_t q = p + 1; q < K_active; q++) {
-            components.beta_intermediates[p*(K_active+K_active+1-p)/2 + q - p] = fci.calculateTwoElectronIntermediate(p, q, frozen_ham_par, active_space.get_fock_space_beta());
-        }
-    }
-
-
-    components.diagonal = frozen_core.calculateDiagonal(mol_ham_par);
-
-    // MATVEC PARAMETERS
-    GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
-
-    components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
-    components.lambda = 0;
-
-    GQCP::VectorFunction matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
-    GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_options);
+    GQCP::DavidsonSolverOptions davidson_solver_options(fock_space.HartreeFockExpansion());
+    davidson_solver_options.maximum_number_of_iterations = 250;
+    davidson_solver_options.collapsed_subspace_dimension = 6;
+    GQCP::CISolver solver(frozen_core, mol_ham_par);
 
     // SOLVE
     try {
-        solver.solve();
+        solver.solve(davidson_solver_options);
     } catch (const std::exception& e) {
         output_log << e.what() << "lambda: " << 0 << std::endl;
         return 2;
     }
-
-    if (run_test) {
-        GQCP::CISolver ci_solver(frozen_core, mol_ham_par);
-        ci_solver.solve(davidson_options);
-
-        if (solver.get_eigenpair().get_eigenvector().isApprox(ci_solver.get_eigenpair().get_eigenvector())) {
-            output_log << "TEST SUCCESFULL" << std::endl;
-        } else {
-            output_log << "TEST FAILED" << std::endl;
-            output_log << solver.get_eigenpair().get_eigenvalue() << std::endl;
-            output_log << ci_solver.get_eigenpair().get_eigenvalue() << std::endl;
-
-            output_log << solver.get_eigenpair().get_eigenvector() << std::endl<<"--------------"<<std::endl;
-            output_log << ci_solver.get_eigenpair().get_eigenvector() << std::endl;
-            return 3;
-        }
-     }
 
     // NEW GUESS
     auto fci_coefficients = solver.get_eigenpair().get_eigenvector();
@@ -281,28 +188,57 @@ int main(int argc, char** argv) {
     GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;
 
     Eigen::MatrixXd one_dm_base = D.get_matrix_representation();
-    Eigen::MatrixXd natural_vectors = D.diagonalize().rowwise().reverse();
-    Eigen::VectorXd naturals = D.get_matrix_representation().diagonal().reverse();
+    Eigen::MatrixXd nat_trans =  D.diagonalize();
+    Eigen::MatrixXd natural_vectors = nat_trans.rowwise().reverse();
+    Eigen::VectorXd naturals_vector = D.get_matrix_representation().diagonal().reverse();
 
-    GQCP::DavidsonSolverOptions davidson_solver_options2(fci_coefficients);
+    if (naturals) {
+        mol_ham_par.transform(nat_trans);
+        GQCP::CISolver solver(frozen_core, mol_ham_par);
+        try {
+            solver.solve(davidson_solver_options);
+        } catch (const std::exception &e) {
+            output_log << e.what() << "NATURALS at lambda: " << 0 << std::endl;
+            return 2;
+        }
+        fci_coefficients = solver.get_eigenpair().get_eigenvector();
+        frozen_fci_calculator.set_coefficients(fci_coefficients);
+        GQCP::OneRDM D2 = frozen_fci_calculator.calculate1RDMs().one_rdm;
+        Eigen::MatrixXd one_dm_base2 = D2.get_matrix_representation();
+        output_log << std::endl;
+        output_log << one_dm_base2 << std::endl << std::endl;
+        output_log << D.get_matrix_representation()<<std::endl;
+        if (one_dm_base2.isApprox(D.get_matrix_representation())) {
+            output_log << "ok";
+        } else {
+            output_log<<"THEFUCK";
+        }
 
-    davidson_solver_options2.maximum_number_of_iterations = 250;
-    davidson_solver_options2.collapsed_subspace_dimension = 6;
+
+
+        davidson_solver_options.X_0 = fci_coefficients;
+
+
+
+    }
+
+
+
+    davidson_solver_options.X_0 = fci_coefficients;
+
+
+
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(AOlist);
-    Eigen::SparseMatrix<double> evaluated_constraint = fci.calculateSpinSeparatedOneElectronOperator(active_space.get_fock_space_beta(),  GQCP::OneElectronOperator<double>(mulliken_operator.block(X,X,K_active, K_active)));
-    components.operators = evaluated_constraint;
+
     for (size_t i = 0; i < lambdas.rows(); i++) {
 
         auto constrained_ham_par = mol_ham_par.constrain(mulliken_operator, lambdas(i));
-        components.lambda = lambdas(i);
-        components.diagonal = frozen_core.calculateDiagonal(constrained_ham_par);;
 
-        const GQCP::VectorFunction& matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
-        GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_solver_options2);
+        GQCP::CISolver solver(frozen_core, constrained_ham_par);
 
         // SOLVE
         try {
-            solver.solve();
+            solver.solve(davidson_solver_options);
         } catch (const std::exception& e) {
             output_log << e.what() << "lambda: " << lambdas(i);
             output_log << "\033[1;31m DAVIDSON FAILED \033[0m" << std::endl;
@@ -312,7 +248,7 @@ int main(int argc, char** argv) {
         auto fci_energy = solver.get_eigenpair().get_eigenvalue();
         auto fci_coefficients = solver.get_eigenpair().get_eigenvector();
         double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
-        davidson_solver_options2.X_0 = fci_coefficients;
+        davidson_solver_options.X_0 = fci_coefficients;
 
         frozen_fci_calculator.set_coefficients(fci_coefficients);
         GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;
@@ -338,7 +274,7 @@ int main(int argc, char** argv) {
     output_log << "RDM Eigenvectors: " << std::setprecision(15) << std::endl << natural_vectors << std::endl;
     output_log << "Total C: " << std::setprecision(15) << std::endl << mol_ham_par.get_T_total() << std::endl;
     output_log << "Basis set used: " << std::setprecision(15) << basisset << std::endl;
-    output_log << "Naturals: " << std::setprecision(15) << std::endl << naturals.transpose() << std::endl;
+    output_log << "Naturals: " << std::setprecision(15) << std::endl << naturals_vector.transpose() << std::endl;
 
     auto stop = std::chrono::high_resolution_clock::now();
 
@@ -349,5 +285,6 @@ int main(int argc, char** argv) {
 
     output_file.close();
     output_log.close();
+
     return 0;
 }
