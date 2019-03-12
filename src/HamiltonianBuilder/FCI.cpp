@@ -533,6 +533,7 @@ Eigen::VectorXd FCI::matrixVectorProduct(const HamiltonianParameters<double>& ha
         }
     }
 
+
     Eigen::SparseMatrix<double> beta_hamiltonian = this->calculateSpinSeparatedHamiltonian(fock_space_beta, hamiltonian_parameters);
     Eigen::SparseMatrix<double> alpha_hamiltonian = this->calculateSpinSeparatedHamiltonian(fock_space_alpha, hamiltonian_parameters);
 

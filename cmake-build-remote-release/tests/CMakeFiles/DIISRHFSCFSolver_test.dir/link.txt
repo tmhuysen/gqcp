@@ -1,0 +1,1 @@
+/usr/bin/c++  -O2 -march=native -m64 -pipe -pthread   CMakeFiles/DIISRHFSCFSolver_test.dir/RHF/DIISRHFSCFSolver_test.cpp.o  -o DIISRHFSCFSolver_test -Wl,-rpath,/home/tmhuysen/GQCG/cmake-build-remote-release/src:/home/tmhuysen/miniconda/lib ../src/libgqcp.so /home/tmhuysen/miniconda/lib/libboost_program_options.so /home/tmhuysen/miniconda/lib/libint2.so 

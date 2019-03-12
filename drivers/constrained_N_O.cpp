@@ -240,6 +240,8 @@ int main(int argc, char** argv) {
 
     // MATVEC PARAMETERS
     GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
+    davidson_solver.maximum_number_of_iterations = 250;
+    davidson_solver.collapsed_subspace_dimension = 6;
 
     components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
     components.lambda = 0;
@@ -284,10 +286,8 @@ int main(int argc, char** argv) {
     Eigen::MatrixXd natural_vectors = D.diagonalize().rowwise().reverse();
     Eigen::VectorXd naturals = D.get_matrix_representation().diagonal().reverse();
 
-    GQCP::DavidsonSolverOptions davidson_solver_options2(fci_coefficients);
+    davidson_solver.X_0 = fci_coefficients;
 
-    davidson_solver_options2.maximum_number_of_iterations = 250;
-    davidson_solver_options2.collapsed_subspace_dimension = 6;
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(AOlist);
     Eigen::SparseMatrix<double> evaluated_constraint = fci.calculateSpinSeparatedOneElectronOperator(active_space.get_fock_space_beta(),  GQCP::OneElectronOperator<double>(mulliken_operator.block(X,X,K_active, K_active)));
     components.operators = evaluated_constraint;
@@ -297,8 +297,7 @@ int main(int argc, char** argv) {
         components.lambda = lambdas(i);
         components.diagonal = frozen_core.calculateDiagonal(constrained_ham_par);;
 
-        const GQCP::VectorFunction& matrixVectorProduct = [&components](const Eigen::VectorXd& x) { return open_matvec(x, components); };
-        GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_solver_options2);
+        GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_solver);
 
         // SOLVE
         try {
@@ -312,7 +311,7 @@ int main(int argc, char** argv) {
         auto fci_energy = solver.get_eigenpair().get_eigenvalue();
         auto fci_coefficients = solver.get_eigenpair().get_eigenvector();
         double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
-        davidson_solver_options2.X_0 = fci_coefficients;
+        davidson_solver.X_0 = fci_coefficients;
 
         frozen_fci_calculator.set_coefficients(fci_coefficients);
         GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;

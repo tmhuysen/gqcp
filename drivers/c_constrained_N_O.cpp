@@ -214,12 +214,6 @@ int main(int argc, char** argv) {
             output_log<<"THEFUCK";
         }
 
-
-
-        davidson_solver_options.X_0 = fci_coefficients;
-
-
-
     }
 
 

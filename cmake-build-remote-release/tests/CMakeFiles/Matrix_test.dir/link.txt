@@ -1,0 +1,1 @@
+/usr/bin/c++  -O2 -march=native -m64 -pipe -pthread   CMakeFiles/Matrix_test.dir/math/Matrix_test.cpp.o  -o Matrix_test -Wl,-rpath,/home/tmhuysen/GQCG/cmake-build-remote-release/src:/home/tmhuysen/miniconda/lib ../src/libgqcp.so /home/tmhuysen/miniconda/lib/libboost_program_options.so /home/tmhuysen/miniconda/lib/libint2.so 
