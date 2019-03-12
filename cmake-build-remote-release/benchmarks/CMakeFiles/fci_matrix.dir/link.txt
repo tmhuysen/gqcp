@@ -1,1 +1,0 @@
-/usr/bin/c++  -O2 -march=native -m64 -pipe -pthread   CMakeFiles/fci_matrix.dir/FCI/fci_matrix.cpp.o  -o fci_matrix -Wl,-rpath,/home/tmhuysen/GQCG/cmake-build-remote-release/src:/home/tmhuysen/miniconda/lib: ../src/libgqcp.so -lbenchmark /home/tmhuysen/miniconda/lib/libboost_program_options.so /home/tmhuysen/miniconda/lib/libint2.so 
