@@ -240,8 +240,8 @@ int main(int argc, char** argv) {
 
     // MATVEC PARAMETERS
     GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
-    davidson_solver.maximum_number_of_iterations = 250;
-    davidson_solver.collapsed_subspace_dimension = 6;
+    davidson_options.maximum_number_of_iterations = 250;
+    davidson_options.collapsed_subspace_dimension = 6;
 
     components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
     components.lambda = 0;
@@ -286,7 +286,7 @@ int main(int argc, char** argv) {
     Eigen::MatrixXd natural_vectors = D.diagonalize().rowwise().reverse();
     Eigen::VectorXd naturals = D.get_matrix_representation().diagonal().reverse();
 
-    davidson_solver.X_0 = fci_coefficients;
+    davidson_options.X_0 = fci_coefficients;
 
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(AOlist);
     Eigen::SparseMatrix<double> evaluated_constraint = fci.calculateSpinSeparatedOneElectronOperator(active_space.get_fock_space_beta(),  GQCP::OneElectronOperator<double>(mulliken_operator.block(X,X,K_active, K_active)));
@@ -297,7 +297,7 @@ int main(int argc, char** argv) {
         components.lambda = lambdas(i);
         components.diagonal = frozen_core.calculateDiagonal(constrained_ham_par);;
 
-        GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_solver);
+        GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_options);
 
         // SOLVE
         try {
@@ -311,7 +311,7 @@ int main(int argc, char** argv) {
         auto fci_energy = solver.get_eigenpair().get_eigenvalue();
         auto fci_coefficients = solver.get_eigenpair().get_eigenvector();
         double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
-        davidson_solver.X_0 = fci_coefficients;
+        davidson_options.X_0 = fci_coefficients;
 
         frozen_fci_calculator.set_coefficients(fci_coefficients);
         GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;
@@ -327,6 +327,7 @@ int main(int argc, char** argv) {
         output_log << "1RDM: " << std::setprecision(15) << std::endl << D.get_matrix_representation() << std::endl;
         output_log << "First eigenvector coefficient: " << std::setprecision(15) << fci_coefficients(0) << std::endl;
         output_log << "Shannon Entropy: " << std::setprecision(15) << entropy << std::endl;
+        output_log << "Iterations: " << std::setprecision(15) << solver.get_number_of_iterations() << std::endl;
     }
     output_log << "-------------------general-----------------------"<< std::endl;
 

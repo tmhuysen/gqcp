@@ -258,7 +258,9 @@ int main(int argc, char** argv) {
         output_log << "1RDM: " << std::setprecision(15) << std::endl << D.get_matrix_representation() << std::endl;
         output_log << "First eigenvector coefficient: " << std::setprecision(15) << fci_coefficients(0) << std::endl;
         output_log << "Shannon Entropy: " << std::setprecision(15) << entropy << std::endl;
+        output_log << "Iterations: " << std::setprecision(15) << solver.get_number_of_iterations() << std::endl;
     }
+
     output_log << "-------------------general-----------------------"<< std::endl;
 
     output_log << "mullikenoperator: " << std::setprecision(15) << std::endl << mulliken_operator << std::endl;

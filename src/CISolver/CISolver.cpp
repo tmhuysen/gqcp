@@ -78,6 +78,7 @@ void CISolver::solve(const BaseSolverOptions& solver_options) {
             DavidsonSolver solver (matrixVectorProduct, diagonal, dynamic_cast<const DavidsonSolverOptions&>(solver_options));
 
             solver.solve();
+            this->number_of_iterations = solver.get_number_of_iterations();
             this->eigenpairs = solver.get_eigenpairs();
 
             break;

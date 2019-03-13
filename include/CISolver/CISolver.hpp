@@ -37,6 +37,7 @@ class CISolver {
 private:
     const HamiltonianBuilder* hamiltonian_builder;
     HamiltonianParameters<double> hamiltonian_parameters;
+    size_t number_of_iterations = 0;
 
     std::vector<Eigenpair> eigenpairs;  // eigenvalues and -vectors
 
@@ -52,6 +53,8 @@ public:
     // GETTERS
     const std::vector<Eigenpair>& get_eigenpairs() const { return this->eigenpairs; }
     const Eigenpair& get_eigenpair(size_t index = 0) const { return this->eigenpairs[index]; }
+    size_t get_number_of_iterations() const {return this->number_of_iterations;};
+
 
 
     // PUBLIC METHODS
