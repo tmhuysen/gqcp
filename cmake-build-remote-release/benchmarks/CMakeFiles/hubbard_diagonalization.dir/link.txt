@@ -1,1 +1,0 @@
-/usr/bin/c++  -O2 -march=native -m64 -pipe -pthread   CMakeFiles/hubbard_diagonalization.dir/Hubbard/hubbard_diagonalization.cpp.o  -o hubbard_diagonalization -Wl,-rpath,/home/tmhuysen/GQCG/cmake-build-remote-release/src:/home/tmhuysen/miniconda/lib: ../src/libgqcp.so -lbenchmark /home/tmhuysen/miniconda/lib/libboost_program_options.so /home/tmhuysen/miniconda/lib/libint2.so 
