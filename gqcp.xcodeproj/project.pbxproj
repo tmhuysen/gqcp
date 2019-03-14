@@ -528,6 +528,15 @@
 		5643B82121F88A0B00E1741F /* BaseAP1roGSolver.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5643B81F21F88A0B00E1741F /* BaseAP1roGSolver.hpp */; };
 		5643B82A21F89F3200E1741F /* libgqcp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5614F98021B0295C002C5D40 /* libgqcp.a */; };
 		5643B83021F89F5E00E1741F /* AP1roGBivariationalSolver_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5643B82221F89E6300E1741F /* AP1roGBivariationalSolver_test.cpp */; };
+		5667C334223AB3E600955DD1 /* Basis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5667C332223AB3E600955DD1 /* Basis.cpp */; };
+		5667C335223AB3E600955DD1 /* Basis.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5667C333223AB3E600955DD1 /* Basis.hpp */; };
+		5667C338223AB42F00955DD1 /* BasisSet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5667C336223AB42F00955DD1 /* BasisSet.cpp */; };
+		5667C339223AB42F00955DD1 /* BasisSet.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5667C337223AB42F00955DD1 /* BasisSet.hpp */; };
+		5667C33C223AB48300955DD1 /* Shell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5667C33A223AB48300955DD1 /* Shell.cpp */; };
+		5667C33D223AB48300955DD1 /* Shell.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5667C33B223AB48300955DD1 /* Shell.hpp */; };
+		5667C341223AB48F00955DD1 /* Contraction.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5667C33F223AB48F00955DD1 /* Contraction.hpp */; };
+		5667C344223AB49B00955DD1 /* BasisFunction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5667C342223AB49B00955DD1 /* BasisFunction.cpp */; };
+		5667C345223AB49B00955DD1 /* BasisFunction.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5667C343223AB49B00955DD1 /* BasisFunction.hpp */; };
 		566D229E21B7ED2500F8EB91 /* oo_doci.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FAA721B02E48002C5D40 /* oo_doci.cpp */; };
 		56884F4D222BB3FB00F68062 /* Matrix.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 56884F4C222BB3FB00F68062 /* Matrix.hpp */; };
 		56884F4F222BB58400F68062 /* Tensor.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 56884F4E222BB58400F68062 /* Tensor.hpp */; };
@@ -2952,6 +2961,15 @@
 		5643B81F21F88A0B00E1741F /* BaseAP1roGSolver.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BaseAP1roGSolver.hpp; sourceTree = "<group>"; };
 		5643B82221F89E6300E1741F /* AP1roGBivariationalSolver_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AP1roGBivariationalSolver_test.cpp; sourceTree = "<group>"; };
 		5643B82F21F89F3200E1741F /* AP1roGBivariationalSolver_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AP1roGBivariationalSolver_test; sourceTree = BUILT_PRODUCTS_DIR; };
+		5667C332223AB3E600955DD1 /* Basis.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Basis.cpp; sourceTree = "<group>"; };
+		5667C333223AB3E600955DD1 /* Basis.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Basis.hpp; sourceTree = "<group>"; };
+		5667C336223AB42F00955DD1 /* BasisSet.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BasisSet.cpp; sourceTree = "<group>"; };
+		5667C337223AB42F00955DD1 /* BasisSet.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BasisSet.hpp; sourceTree = "<group>"; };
+		5667C33A223AB48300955DD1 /* Shell.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Shell.cpp; sourceTree = "<group>"; };
+		5667C33B223AB48300955DD1 /* Shell.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Shell.hpp; sourceTree = "<group>"; };
+		5667C33F223AB48F00955DD1 /* Contraction.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Contraction.hpp; sourceTree = "<group>"; };
+		5667C342223AB49B00955DD1 /* BasisFunction.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BasisFunction.cpp; sourceTree = "<group>"; };
+		5667C343223AB49B00955DD1 /* BasisFunction.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BasisFunction.hpp; sourceTree = "<group>"; };
 		56884F4C222BB3FB00F68062 /* Matrix.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Matrix.hpp; sourceTree = "<group>"; };
 		56884F4E222BB58400F68062 /* Tensor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Tensor.hpp; sourceTree = "<group>"; };
 		56884F50222BDB2000F68062 /* Matrix_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Matrix_test.cpp; sourceTree = "<group>"; };
@@ -3883,6 +3901,7 @@
 		5614F98E21B029FB002C5D40 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				5667C347223AB4B200955DD1 /* Basis */,
 				5614F9BE21B029FB002C5D40 /* CISolver */,
 				5614F99121B029FB002C5D40 /* FockSpace */,
 				56272DB221B6CBFA008BEA47 /* geminals */,
@@ -4026,6 +4045,7 @@
 		5614F9D121B029FB002C5D40 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				5667C348223AB4DA00955DD1 /* Basis */,
 				5614F9FC21B029FB002C5D40 /* CISolver */,
 				56288CDF2201C65600403B47 /* CMakeLists.txt */,
 				5614F9D821B029FB002C5D40 /* FockSpace */,
@@ -4150,9 +4170,7 @@
 		5614FA7621B02A16002C5D40 /* singles */ = {
 			isa = PBXGroup;
 			children = (
-				5614F99921B029FB002C5D40 /* AOBasis.hpp */,
 				5614F9A921B029FB002C5D40 /* Atom.hpp */,
-				562241E42225B3DC001436D0 /* CartesianGTO.hpp */,
 				5614F99021B029FB002C5D40 /* DOCINewtonOrbitalOptimizer.hpp */,
 				5614F9B921B029FB002C5D40 /* elements.hpp */,
 				56FBA0E821C2DFC00084F088 /* HoppingMatrix.hpp */,
@@ -4170,9 +4188,7 @@
 		5614FA7721B02A34002C5D40 /* singles */ = {
 			isa = PBXGroup;
 			children = (
-				5614F9F721B029FB002C5D40 /* AOBasis.cpp */,
 				5614F9DE21B029FB002C5D40 /* Atom.cpp */,
-				562241E32225B3DC001436D0 /* CartesianGTO.cpp */,
 				5614FA0E21B029FB002C5D40 /* DOCINewtonOrbitalOptimizer.cpp */,
 				5614F9D521B029FB002C5D40 /* elements.cpp */,
 				56FBA0E621C2DFB40084F088 /* HoppingMatrix.cpp */,
@@ -4572,6 +4588,33 @@
 			path = Parse;
 			sourceTree = "<group>";
 		};
+		5667C347223AB4B200955DD1 /* Basis */ = {
+			isa = PBXGroup;
+			children = (
+				5614F99921B029FB002C5D40 /* AOBasis.hpp */,
+				5667C333223AB3E600955DD1 /* Basis.hpp */,
+				5667C343223AB49B00955DD1 /* BasisFunction.hpp */,
+				5667C337223AB42F00955DD1 /* BasisSet.hpp */,
+				562241E42225B3DC001436D0 /* CartesianGTO.hpp */,
+				5667C33F223AB48F00955DD1 /* Contraction.hpp */,
+				5667C33B223AB48300955DD1 /* Shell.hpp */,
+			);
+			path = Basis;
+			sourceTree = "<group>";
+		};
+		5667C348223AB4DA00955DD1 /* Basis */ = {
+			isa = PBXGroup;
+			children = (
+				5614F9F721B029FB002C5D40 /* AOBasis.cpp */,
+				5667C332223AB3E600955DD1 /* Basis.cpp */,
+				5667C342223AB49B00955DD1 /* BasisFunction.cpp */,
+				5667C336223AB42F00955DD1 /* BasisSet.cpp */,
+				562241E32225B3DC001436D0 /* CartesianGTO.cpp */,
+				5667C33A223AB48300955DD1 /* Shell.cpp */,
+			);
+			path = Basis;
+			sourceTree = "<group>";
+		};
 		5696302C2226C63E0019DEAD /* singles */ = {
 			isa = PBXGroup;
 			children = (
@@ -4723,6 +4766,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56C040652212BCC800C61BB0 /* SelectedCI.hpp in Headers */,
+				5667C341223AB48F00955DD1 /* Contraction.hpp in Headers */,
 				5614FA3B21B029FB002C5D40 /* WaveFunction.hpp in Headers */,
 				56FBA0C621C2B4AF0084F088 /* BaseMatrixSolver.hpp in Headers */,
 				56272DBD21B6CBFA008BEA47 /* AP1roG.hpp in Headers */,
@@ -4746,6 +4790,7 @@
 				5614FA3221B029FB002C5D40 /* OrbitalOptimizationOptions.hpp in Headers */,
 				5614FA1C21B029FB002C5D40 /* RDMCalculator.hpp in Headers */,
 				5614FA3021B029FB002C5D40 /* typedefs.hpp in Headers */,
+				5667C339223AB42F00955DD1 /* BasisSet.hpp in Headers */,
 				5614FA4121B029FB002C5D40 /* HamiltonianBuilder.hpp in Headers */,
 				562241E62225B3DC001436D0 /* CartesianGTO.hpp in Headers */,
 				5614FA2221B029FB002C5D40 /* RDMs.hpp in Headers */,
@@ -4771,12 +4816,14 @@
 				56FBA09F21C2B0420084F088 /* linalg.hpp in Headers */,
 				56FBA0A221C2B0420084F088 /* miscellaneous.hpp in Headers */,
 				5614FA1621B029FB002C5D40 /* FockSpace.hpp in Headers */,
+				5667C335223AB3E600955DD1 /* Basis.hpp in Headers */,
 				5614FA3A21B029FB002C5D40 /* BaseERLocalizer.hpp in Headers */,
 				56D630CB221FE776001081EB /* FrozenCoreFCIRDMBuilder.hpp in Headers */,
 				5614FA2021B029FB002C5D40 /* OneRDM.hpp in Headers */,
 				5614FA1921B029FB002C5D40 /* PlainRHFSCFSolver.hpp in Headers */,
 				5614FA1821B029FB002C5D40 /* RHFSCFSolver.hpp in Headers */,
 				5614FA2E21B029FB002C5D40 /* units.hpp in Headers */,
+				5667C33D223AB48300955DD1 /* Shell.hpp in Headers */,
 				56C839992215A7B500FA98A0 /* Operator.hpp in Headers */,
 				5614FA4421B029FB002C5D40 /* Molecule.hpp in Headers */,
 				5614FA1121B029FB002C5D40 /* ProductFockSpace.hpp in Headers */,
@@ -4809,6 +4856,7 @@
 				56FBA0C721C2B4AF0084F088 /* SparseSolver.hpp in Headers */,
 				56FBA0BF21C2B4AF0084F088 /* NewtonMinimizer.hpp in Headers */,
 				56272DB921B6CBFA008BEA47 /* AP1roGJacobiOrbitalOptimizer.hpp in Headers */,
+				5667C345223AB49B00955DD1 /* BasisFunction.hpp in Headers */,
 				5614FA1221B029FB002C5D40 /* Configuration.hpp in Headers */,
 				5614FA2121B029FB002C5D40 /* FCIRDMBuilder.hpp in Headers */,
 				5614FA1721B029FB002C5D40 /* AOBasis.hpp in Headers */,
@@ -6826,6 +6874,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5667C334223AB3E600955DD1 /* Basis.cpp in Sources */,
 				5614FA5621B029FB002C5D40 /* BaseRDMBuilder.cpp in Sources */,
 				56B49B8121F2128D000F543B /* AP1roGJacobiOrbitalOptimizer.cpp in Sources */,
 				56FBA0A721C2B06B0084F088 /* miscellaneous.cpp in Sources */,
@@ -6839,6 +6888,7 @@
 				5643B80921F868A600E1741F /* AP1roGVariables.cpp in Sources */,
 				562241E52225B3DC001436D0 /* CartesianGTO.cpp in Sources */,
 				5614FA4D21B029FB002C5D40 /* ProductFockSpace.cpp in Sources */,
+				5667C33C223AB48300955DD1 /* Shell.cpp in Sources */,
 				5614FA5421B029FB002C5D40 /* PlainRHFSCFSolver.cpp in Sources */,
 				56D63095221FE5F1001081EB /* FrozenProductFockSpace.cpp in Sources */,
 				5614FA4721B029FB002C5D40 /* RMP2.cpp in Sources */,
@@ -6875,10 +6925,12 @@
 				5614FA7521B029FB002C5D40 /* DOCINewtonOrbitalOptimizer.cpp in Sources */,
 				56FBA0D621C2B4C90084F088 /* NewtonSystemOfEquationsSolver.cpp in Sources */,
 				56B49B8021F2128D000F543B /* AP1roG.cpp in Sources */,
+				5667C344223AB49B00955DD1 /* BasisFunction.cpp in Sources */,
 				56D630A5221FE657001081EB /* FrozenCoreFCI.cpp in Sources */,
 				5614FA7421B029FB002C5D40 /* HamiltonianBuilder.cpp in Sources */,
 				56D630A7221FE657001081EB /* FrozenCoreDOCI.cpp in Sources */,
 				56D630CF221FE785001081EB /* FrozenCoreDOCIRDMBuilder.cpp in Sources */,
+				5667C338223AB42F00955DD1 /* BasisSet.cpp in Sources */,
 				5614FA5A21B029FB002C5D40 /* SelectedRDMBuilder.cpp in Sources */,
 				5614FA4A21B029FB002C5D40 /* FockSpace.cpp in Sources */,
 				5643B7E821F7074000E1741F /* SpinUnresolvedWaveFunction.cpp in Sources */,
