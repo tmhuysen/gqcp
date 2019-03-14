@@ -3,6 +3,14 @@
 #include <cint.h>
 
 
+/*
+ *  FUNCTIONS THAT AREN'T INSIDE <cint.h>
+ */
+int cint1e_ipnuc_cart(double *buf, int *shls, int *atm, int natm, int *bas, int nbas, double *env);
+
+
+
+
 namespace GQCP {
 
 
@@ -18,10 +26,16 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
 
     int natm = 2;
     int nbas = 4;
-    // ATM_SLOTS = 6; BAS_SLOTS = 8;
-    int *atm = malloc(sizeof(int) * natm * ATM_SLOTS);
-    int *bas = malloc(sizeof(int) * nbas * BAS_SLOTS);
-    double *env = malloc(sizeof(double) * 10000);
+
+    // TODO: use int[natm * ATM_SLOTS]?
+    // TODO: avoid malloc calls and use int[n]?
+
+
+    // ATM_SLOTS = 6, BAS_SLOTS = 8 are declared inside <cint.h>
+
+    int* atm = (int*)malloc(sizeof(int) * natm * ATM_SLOTS);  // information about the atoms
+    int* bas = (int*)malloc(sizeof(int) * nbas * BAS_SLOTS);  // information about the basis functions
+    double* env = (double*)malloc(sizeof(double) * 10000);  // a general container (env = environment) in which libcint (probably) places intermediary calculations
 
     int i, n, off;
     off = PTR_ENV_START; // = 20
@@ -108,7 +122,7 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
 
     i = 0; shls[0] = i; di = CINTcgto_cart(i, bas);
     j = 1; shls[1] = j; dj = CINTcgto_cart(j, bas);
-    buf = malloc(sizeof(double) * di * dj * 3);
+    buf = (double*)malloc(sizeof(double) * di * dj * 3);
     if (0 != cint1e_ipnuc_cart(buf, shls, atm, natm, bas, nbas, env)) {
         printf("This gradient integral is not 0.\n");
     } else {
@@ -123,7 +137,7 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
     j = 1; shls[1] = j; dj = CINTcgto_cart(j, bas);
     k = 2; shls[2] = k; dk = CINTcgto_cart(k, bas);
     l = 2; shls[3] = l; dl = CINTcgto_cart(l, bas);
-    buf = malloc(sizeof(double) * di * dj * dk * dl);
+    buf = (double*)malloc(sizeof(double) * di * dj * dk * dl);
     if (0 != cint2e_cart(buf, shls, atm, natm, bas, nbas, env, NULL)) {
         printf("This integral is not 0.\n");
     } else {
@@ -137,7 +151,7 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
     j = 1; shls[1] = j; dj = CINTcgto_cart(j, bas);
     k = 2; shls[2] = k; dk = CINTcgto_cart(k, bas);
     l = 2; shls[3] = l; dl = CINTcgto_cart(l, bas);
-    buf = malloc(sizeof(double) * di * dj * dk * dl);
+    buf = (double*)malloc(sizeof(double) * di * dj * dk * dl);
     if (0 != cint2e_cart(buf, shls, atm, natm, bas, nbas, env, opt)) {
         printf("This integral is not 0.\n");
     } else {
@@ -149,7 +163,6 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
     free(atm);
     free(bas);
     free(env);
-
 
 
     return OneElectronOperator<double>();

@@ -539,6 +539,8 @@
 		5667C345223AB49B00955DD1 /* BasisFunction.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5667C343223AB49B00955DD1 /* BasisFunction.hpp */; };
 		5667C350223AFC7B00955DD1 /* LibcintCommunicator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5667C34E223AFC7B00955DD1 /* LibcintCommunicator.cpp */; };
 		5667C351223AFC7B00955DD1 /* LibcintCommunicator.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5667C34F223AFC7B00955DD1 /* LibcintCommunicator.hpp */; };
+		5667C359223B041B00955DD1 /* libgqcp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5614F98021B0295C002C5D40 /* libgqcp.a */; };
+		5667C35F223B042700955DD1 /* LibcintCommunicator_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5667C352223B03E400955DD1 /* LibcintCommunicator_test.cpp */; };
 		566D229E21B7ED2500F8EB91 /* oo_doci.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5614FAA721B02E48002C5D40 /* oo_doci.cpp */; };
 		56884F4D222BB3FB00F68062 /* Matrix.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 56884F4C222BB3FB00F68062 /* Matrix.hpp */; };
 		56884F4F222BB58400F68062 /* Tensor.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 56884F4E222BB58400F68062 /* Tensor.hpp */; };
@@ -1500,6 +1502,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 5643B82421F89F3200E1741F;
 			remoteInfo = AP1roGBivariationalSolver_test;
+		};
+		5667C355223B041B00955DD1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5614F97821B0295C002C5D40 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5614F97F21B0295C002C5D40;
+			remoteInfo = gqcp;
 		};
 		569630322226CEA80019DEAD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2463,6 +2472,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		5667C35A223B041B00955DD1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		56884F58222BDBB700F68062 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2974,6 +2992,8 @@
 		5667C343223AB49B00955DD1 /* BasisFunction.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BasisFunction.hpp; sourceTree = "<group>"; };
 		5667C34E223AFC7B00955DD1 /* LibcintCommunicator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LibcintCommunicator.cpp; path = ../include/LibcintCommunicator.cpp; sourceTree = "<group>"; };
 		5667C34F223AFC7B00955DD1 /* LibcintCommunicator.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LibcintCommunicator.hpp; sourceTree = "<group>"; };
+		5667C352223B03E400955DD1 /* LibcintCommunicator_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LibcintCommunicator_test.cpp; sourceTree = "<group>"; };
+		5667C35E223B041B00955DD1 /* LibcintCommunicator_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LibcintCommunicator_test; sourceTree = BUILT_PRODUCTS_DIR; };
 		56884F4C222BB3FB00F68062 /* Matrix.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Matrix.hpp; sourceTree = "<group>"; };
 		56884F4E222BB58400F68062 /* Tensor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Tensor.hpp; sourceTree = "<group>"; };
 		56884F50222BDB2000F68062 /* Matrix_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Matrix_test.cpp; sourceTree = "<group>"; };
@@ -3617,6 +3637,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5667C358223B041B00955DD1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5667C359223B041B00955DD1 /* libgqcp.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56884F56222BDBB700F68062 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -3898,6 +3926,7 @@
 				562990BF22292E0900005FA7 /* ScalarFunction_test */,
 				56884F5C222BDBB700F68062 /* Matrix_test */,
 				56884F6A222C00BC00F68062 /* Tensor_test */,
+				5667C35E223B041B00955DD1 /* LibcintCommunicator_test */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4489,6 +4518,7 @@
 				5614FB5D21B02EDE002C5D40 /* elements_test.cpp */,
 				56FBA0EC21C2F1950084F088 /* HoppingMatrix_test.cpp */,
 				5614FB3D21B02EDE002C5D40 /* JacobiRotationParameters_test.cpp */,
+				5667C352223B03E400955DD1 /* LibcintCommunicator_test.cpp */,
 				5614FB3F21B02EDE002C5D40 /* LibintCommunicator_test.cpp */,
 				5614FB7921B02EDE002C5D40 /* Molecule_test.cpp */,
 				5614FB5E21B02EDE002C5D40 /* OO_DOCI_test.cpp */,
@@ -6028,6 +6058,24 @@
 			productReference = 5643B82F21F89F3200E1741F /* AP1roGBivariationalSolver_test */;
 			productType = "com.apple.product-type.tool";
 		};
+		5667C353223B041B00955DD1 /* LibcintCommunicator_test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5667C35B223B041B00955DD1 /* Build configuration list for PBXNativeTarget "LibcintCommunicator_test" */;
+			buildPhases = (
+				5667C356223B041B00955DD1 /* Sources */,
+				5667C358223B041B00955DD1 /* Frameworks */,
+				5667C35A223B041B00955DD1 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5667C354223B041B00955DD1 /* PBXTargetDependency */,
+			);
+			name = LibcintCommunicator_test;
+			productName = AP1roGGeminalCoefficients_test;
+			productReference = 5667C35E223B041B00955DD1 /* LibcintCommunicator_test */;
+			productType = "com.apple.product-type.tool";
+		};
 		56884F51222BDBB700F68062 /* Matrix_test */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56884F59222BDBB700F68062 /* Build configuration list for PBXNativeTarget "Matrix_test" */;
@@ -6578,6 +6626,7 @@
 				5614012921B06371002C5D40 /* elements_test */,
 				56FBA0ED21C2F1A10084F088 /* HoppingMatrix_test */,
 				5614013521B06376002C5D40 /* JacobiRotationParameters_test */,
+				5667C353223B041B00955DD1 /* LibcintCommunicator_test */,
 				5614014121B0637D002C5D40 /* LibintCommunicator_test */,
 				5614015921B06389002C5D40 /* Molecule_test */,
 				5614016521B0638D002C5D40 /* OO_DOCI_test */,
@@ -7199,6 +7248,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				5643B83021F89F5E00E1741F /* AP1roGBivariationalSolver_test.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5667C356223B041B00955DD1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5667C35F223B042700955DD1 /* LibcintCommunicator_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -7989,6 +8046,11 @@
 			isa = PBXTargetDependency;
 			target = 5643B82421F89F3200E1741F /* AP1roGBivariationalSolver_test */;
 			targetProxy = 5643B83121F89F7F00E1741F /* PBXContainerItemProxy */;
+		};
+		5667C354223B041B00955DD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5614F97F21B0295C002C5D40 /* gqcp */;
+			targetProxy = 5667C355223B041B00955DD1 /* PBXContainerItemProxy */;
 		};
 		569630312226CEA80019DEAD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -9704,6 +9766,22 @@
 			};
 			name = Release;
 		};
+		5667C35C223B041B00955DD1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		5667C35D223B041B00955DD1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		56884F5A222BDBB700F68062 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -10838,6 +10916,15 @@
 			buildConfigurations = (
 				5643B82D21F89F3200E1741F /* Debug */,
 				5643B82E21F89F3200E1741F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5667C35B223B041B00955DD1 /* Build configuration list for PBXNativeTarget "LibcintCommunicator_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5667C35C223B041B00955DD1 /* Debug */,
+				5667C35D223B041B00955DD1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
