@@ -36,7 +36,7 @@ namespace GQCP {
 /**
  *  A singleton class that takes care of interfacing with the Libint2 (version 2.3.1) C++ API
  *
- *  Singleton class template from (https://stackoverflow.com/a/1008289)
+ *  Singleton class template from: https://stackoverflow.com/a/1008289
  */
 class LibintCommunicator {
 private:
