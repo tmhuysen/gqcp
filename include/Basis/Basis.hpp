@@ -4,27 +4,26 @@
 
 #include "Basis/BasisSet.hpp"
 
+#include "Operator/OneElectronOperator.hpp"
 
 
 
 namespace GQCP {
 
+
 class Basis {
 private:
-
     BasisSet basisset;
 
 
-    
-
-
-
+public:
+    OneElectronOperator<double> calculateLibintOverlapIntegrals() const;
 };
 
 
 
-}
+}  // namespace GQCP
 
 
 
-#endif /* Basis_hpp */
+#endif  /* Basis_hpp */
