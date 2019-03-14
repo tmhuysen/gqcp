@@ -126,23 +126,27 @@ libint2::BasisSet LibintCommunicator::interface(const BasisSet& basisset) const 
  */
 libint2::Shell LibintCommunicator::interface(const Shell& shell) const {
 
-    std::vector<double> libint_alpha = shell.get_exponents();  // libint::Shell::real_t is double
+    // Part 1: exponents
+    std::vector<double> libint_alpha = shell.get_exponents();  // libint::Shell::real_t is double, so no need to use real_t
 
 
+    // Part 2: contractions
     std::vector<libint2::Shell::Contraction> libint_contr;
+    libint_contr.reserve(shell.get_contractions().size());
 
     for (const auto& contraction : shell.get_contractions()) {
         auto libint_l = static_cast<int>(contraction.l);
-        bool libint_pure = false;
+        bool libint_pure = false;  // our shells are Cartesian
         std::vector<double> libint_coeff = contraction.coefficients;
 
-        libint_contr.emplace_back(libint_l, libint_pure, libint_coeff);
+        libint2::Shell::Contraction libint_contraction {libint_l, libint_pure, libint_coeff};
+        libint_contr.push_back(libint_contraction);
     }
 
 
+    // Part 3: origin
     auto position = shell.get_atom().position;
     std::array<double, 3> libint_O {position.x(), position.y(), position.z()};
-
 
     return libint2::Shell(libint_alpha, libint_contr, libint_O);
 }
