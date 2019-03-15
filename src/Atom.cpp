@@ -68,6 +68,16 @@ bool Atom::operator==(const Atom& other) const {
 
 
 /**
+ *  @param other        the other atom
+ *
+ *  @return if this atom is not equal to the other, within a default tolerance for the coordinates
+ */
+bool Atom::operator!=(const Atom& other) const {
+    return !this->operator==(other);
+}
+
+
+/**
  *  A custom implementation for the comparison (and thus ordening) of atoms. The atomic_number takes precedence over the x-coordinate, which takes precedence over the y-coordinate, which in turn takes precedence over the z-coordinate
  *
  *  @param other        the other atom

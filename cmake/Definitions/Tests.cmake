@@ -88,6 +88,7 @@ set(PROJECT_TEST_SOURCE_FILES
         ${PROJECT_TESTS_FOLDER}/elements_test.cpp
         ${PROJECT_TESTS_FOLDER}/HoppingMatrix_test.cpp
         ${PROJECT_TESTS_FOLDER}/JacobiRotationParameters_test.cpp
+        ${PROJECT_TESTS_FOLDER}/LibcintCommunicator_test.cpp
         ${PROJECT_TESTS_FOLDER}/LibintCommunicator_test.cpp
         ${PROJECT_TESTS_FOLDER}/Molecule_test.cpp
         ${PROJECT_TESTS_FOLDER}/OO_DOCI_test.cpp

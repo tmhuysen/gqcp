@@ -23,6 +23,8 @@
 #include "Molecule.hpp"
 #include "Operator/OneElectronOperator.hpp"
 #include "Operator/TwoElectronOperator.hpp"
+#include "Basis/BasisSet.hpp"
+#include "Basis/Shell.hpp"
 
 #include <boost/preprocessor.hpp>  // include preprocessor before libint to fix libint-boost bug
 #include <libint2.hpp>
@@ -32,13 +34,14 @@ namespace GQCP {
 
 
 /**
- *  A singleton class that takes care of interfacing with the Libint2 (version >2.2.0) C++ API
+ *  A singleton class that takes care of interfacing with the Libint2 (version 2.3.1) C++ API
  *
- *  Singleton class template from (https://stackoverflow.com/a/1008289)
+ *  Singleton class template from: https://stackoverflow.com/a/1008289
  */
 class LibintCommunicator {
 private:
-    // SINGLETON METHODS
+    // PRIVATE METHODS - SINGLETON
+
     /**
      *  Private constructor as required by the singleton class design
      */
@@ -51,10 +54,26 @@ private:
 
 
     // PRIVATE STRUCTS
-    typedef struct {} empty;  // empty_pod is a private typedef for libint2::Engine, so we copy it over
+    using empty = struct {};  // libint2's empty_pod is a private alias inside libint2::Engine, so we copy it over
 
 
-    // PRIVATE METHODS
+public:
+    // PUBLIC METHODS - SINGLETON
+
+    /**
+     *  @return the static singleton instance
+     */
+    static LibintCommunicator& get();
+
+    /**
+     *  Remove the public copy constructor and the public assignment operator
+     */
+    LibintCommunicator(LibintCommunicator const& libint_communicator) = delete;
+    void operator=(LibintCommunicator const& libint_communicator) = delete;
+
+
+    // PUBLIC METHODS - INTEGRALS
+
     /**
      *  @tparam N               the number of operator components
      *
@@ -119,6 +138,7 @@ private:
     }
 
 
+    // TODO: clean up API
     /**
      *  @param operator_type    the name of the operator as specified by the enumeration
      *  @param ao_basis         the AO basis in which the two-electron operator should be expressed
@@ -128,20 +148,18 @@ private:
     TwoElectronOperator<double> calculateTwoElectronIntegrals(libint2::Operator operator_type, const AOBasis& ao_basis) const;
 
 
-public:
-    // SINGLETON METHODS
+    TwoElectronOperator<double> calculateTwoElectronIntegrals(libint2::Operator operator_type, const libint2::BasisSet& basisset) const;
+
+
+
+
+    // PUBLIC METHODS - INTERFACING
     /**
-     *  @return the static singleton instance
+     *  @param atom         the GQCP-atom that should be interfaced
+     *
+     *  @return a libint2::Atom, interfaced from the given GQCP::Atom
      */
-    static LibintCommunicator& get();
-
-    /**
-     *  Remove the public copy constructor and the public assignment operator
-     */
-    LibintCommunicator(LibintCommunicator const& libint_communicator) = delete;
-    void operator=(LibintCommunicator const& libint_communicator) = delete;
-
-
+    libint2::Atom interface(const Atom& atom) const;
 
 
     // PUBLIC METHODS
@@ -152,6 +170,25 @@ public:
      */
     std::vector<libint2::Atom> interface(const std::vector<Atom>& atoms) const;
 
+    /**
+     *  @param basisset     the GQCP basisset that should be interfaced
+     *
+     *  @return a libint2::BasisSet, interfaced from the GQCP BasisSet
+     */
+    libint2::BasisSet interface(const BasisSet& basisset) const;
+
+    /**
+     *  @param shell        the GQCP shell that should be interfaced
+     *
+     *  @return a libint2::Shell, interfaced from the GQCP Shell
+     */
+    libint2::Shell interface(const Shell& shell) const;
+
+
+
+
+
+    // PUBLIC METHODS TODO: move to basis
     /**
      *  @param ao_basis     the AO basis used for the calculation of the overlap integrals
      *
@@ -187,8 +224,6 @@ public:
      *  @return the Coulomb repulsion integrals expressed in the given AO basis
      */
     TwoElectronOperator<double> calculateCoulombRepulsionIntegrals(const AOBasis& ao_basis) const;
-
-
 };
 
 
