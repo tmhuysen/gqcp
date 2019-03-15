@@ -106,11 +106,9 @@ void LibcintCommunicator::test() const {
     int atom_index = 0;  // index of the atom the shell is centered on
     auto previous_atom = basisset[0].get_atom();
 
-    std::cout << "number of shells: " << basisset.numberOfShells() << std::endl;
 
     for (size_t n = 0; n < basisset.numberOfShells(); n++) {
 
-        std::cout << "n: " << n << std::endl;
         auto current_shell = basisset[n];
         auto contractions = current_shell.get_contractions();
 
@@ -123,7 +121,6 @@ void LibcintCommunicator::test() const {
             previous_atom = current_atom;
         }
         libcint_bas[ATOM_OF + BAS_SLOTS * n] = atom_index;
-        std::cout << "atom_index: " << atom_index << std::endl;
 
 
 
@@ -136,12 +133,8 @@ void LibcintCommunicator::test() const {
 
             libcint_bas[PTR_EXP  + BAS_SLOTS * n] = offset;  // pointer to the exponents of the shell inside the libcint environment
             for (size_t e = 0; e < current_contraction.length(); e++, offset++) {  // also increment offset
-                std::cout << "e: " << e << std::endl;
                 libcint_env[offset + e] = current_shell.get_exponents()[e];
             }
-
-
-            std::cout << "I'm here" << std::endl;
 
 
             libcint_bas[PTR_COEFF + BAS_SLOTS * n] = offset;  // pointer to the contraction coefficients inside the libcint environment
@@ -149,7 +142,6 @@ void LibcintCommunicator::test() const {
             for (size_t c = 0; c < current_contraction.length(); c++, offset++) {  // also increment offset
 
 
-                std::cout << "contraction coefficient: " << current_contraction.coefficients[c] << std::endl;
                 libcint_env[offset + c] = current_contraction.coefficients[c] * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+c]);
             }
 
