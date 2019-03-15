@@ -1,5 +1,8 @@
 #include "LibcintCommunicator.hpp"
 
+
+extern "C" {
+
 #include <cint.h>
 
 
@@ -8,13 +11,14 @@
  */
 int cint1e_ipnuc_cart(double *buf, int *shls, int *atm, int natm, int *bas, int nbas, double *env);
 
+}  // extern "C"
 
 
 
 namespace GQCP {
 
 
-OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const Basis& basis) const {
+void LibcintCommunicator::test() const {
 
     /* general contracted DZ basis [3s1p/2s1p] for H2
      exponents    contract-coeff
@@ -123,11 +127,9 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
     i = 0; shls[0] = i; di = CINTcgto_cart(i, bas);
     j = 1; shls[1] = j; dj = CINTcgto_cart(j, bas);
     buf = (double*)malloc(sizeof(double) * di * dj * 3);
-    if (0 != cint1e_ipnuc_cart(buf, shls, atm, natm, bas, nbas, env)) {
-        printf("This gradient integral is not 0.\n");
-    } else {
-        printf("This integral is 0.\n");
-    }
+
+
+    std::cout << cint1e_ipnuc_cart(buf, shls, atm, natm, bas, nbas, env) << std::endl;
     free(buf);
 
     /*
@@ -138,11 +140,9 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
     k = 2; shls[2] = k; dk = CINTcgto_cart(k, bas);
     l = 2; shls[3] = l; dl = CINTcgto_cart(l, bas);
     buf = (double*)malloc(sizeof(double) * di * dj * dk * dl);
-    if (0 != cint2e_cart(buf, shls, atm, natm, bas, nbas, env, NULL)) {
-        printf("This integral is not 0.\n");
-    } else {
-        printf("This integral is 0.\n");
-    }
+
+
+    std::cout << cint2e_cart(buf, shls, atm, natm, bas, nbas, env, NULL) << std::endl;
     free(buf);
 
     CINTOpt *opt = NULL;
@@ -152,11 +152,8 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
     k = 2; shls[2] = k; dk = CINTcgto_cart(k, bas);
     l = 2; shls[3] = l; dl = CINTcgto_cart(l, bas);
     buf = (double*)malloc(sizeof(double) * di * dj * dk * dl);
-    if (0 != cint2e_cart(buf, shls, atm, natm, bas, nbas, env, opt)) {
-        printf("This integral is not 0.\n");
-    } else {
-        printf("This integral is 0.\n");
-    }
+
+    std::cout << cint2e_cart(buf, shls, atm, natm, bas, nbas, env, opt) << std::endl;
     free(buf);
     CINTdel_optimizer(&opt);
 
@@ -164,8 +161,6 @@ OneElectronOperator<double> LibcintCommunicator::calculateOverlapIntegrals(const
     free(bas);
     free(env);
 
-
-    return OneElectronOperator<double>();
 }
 
 

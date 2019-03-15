@@ -25,4 +25,5 @@
 
 BOOST_AUTO_TEST_CASE ( sandbox ) {
     GQCP::LibcintCommunicator libcint;
+    libcint.test();  // should output 1 1 1
 }

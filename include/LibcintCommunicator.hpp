@@ -3,7 +3,6 @@
 
 
 #include "Operator/OneElectronOperator.hpp"
-#include "Basis/Basis.hpp"
 
 
 namespace GQCP {
@@ -14,7 +13,7 @@ namespace GQCP {
  */
 class LibcintCommunicator {
 public:
-    OneElectronOperator<double> calculateOverlapIntegrals(const Basis& basis) const;
+    void test() const;
 };
 
 
