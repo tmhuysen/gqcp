@@ -30,13 +30,6 @@ BasisSet::BasisSet(const std::string& basisset_name, const Molecule& molecule)
             contractions.push_back({static_cast<size_t>(contraction.l), contraction.coeff});
         }
 
-        std::cout<<contractions.size();
-
-
-        std::cout<<libint_shell.contr.size();
-
-
-
         // libint2 only stores the carthesian origin of the shell (not the atom)
         //  find the atom corresponding to the copied shell's origin
         Atom corresponding_atom;
@@ -47,7 +40,7 @@ BasisSet::BasisSet(const std::string& basisset_name, const Molecule& molecule)
                 break;
             }
         }
-        std::cout<<libint_shell.alpha.size();
+
         this->emplace_back(corresponding_atom, libint_shell.alpha, contractions);
     }
 }
