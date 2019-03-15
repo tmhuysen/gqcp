@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 //
 //  BasisFunction.cpp
 //  gqcp
@@ -42,4 +41,3 @@ double BasisFunction::calculateNormalizationFactor() const {
 
 
 }  // namespace GQCP
->>>>>>> feature/basisset

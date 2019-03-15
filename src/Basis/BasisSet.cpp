@@ -77,7 +77,6 @@ std::vector<Atom> BasisSet::atoms() const {
     }
 
     return atoms;
->>>>>>> feature/basisset
 }
 
 

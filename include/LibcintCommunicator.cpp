@@ -165,33 +165,33 @@ void LibcintCommunicator::test() const {
     }
 
 
-    const auto nsh = static_cast<size_t>(basisset.size());  // number of shells
-    for (auto sh1 = 0; sh1 != nsh; ++sh1) {  // shell 1
-        for (auto sh2 = 0; sh2 != nsh; ++sh2) {  // shell 2
-            // Calculate integrals between the two shells
-            engine.compute(basisset[sh1], basisset[sh2]);  // this updates the pointers in calculated_integrals
-
-
-            // Place the calculated integrals into the matrix representation(s): the integrals are stored in row-major form
-            auto bf1 = shell2bf[sh1];  // (index of) first bf in sh1
-            auto bf2 = shell2bf[sh2];  // (index of) first bf in sh2
-
-            auto nbf_sh1 = basisset[sh1].size();  // number of basis functions in first shell
-            auto nbf_sh2 = basisset[sh2].size();  // number of basis functions in second shell
-
-            for (auto f1 = 0; f1 != nbf_sh1; ++f1) {  // f1: index of basis function within shell 1
-                for (auto f2 = 0; f2 != nbf_sh2; ++f2) { // f2: index of basis function within shell 2
-
-                    for (size_t i = 0; i < N; i++) {
-                        double computed_integral = calculated_integrals[i][f2 + f1 * nbf_sh2];  // integrals are packed in row-major form
-                        operator_components[i](bf1 + f1, bf2 + f2) = computed_integral;
-                    }
-
-                }
-            }  // data access loops
-
-        }
-    }  // shell loops
+//    const auto nsh = static_cast<size_t>(basisset.size());  // number of shells
+//    for (auto sh1 = 0; sh1 != nsh; ++sh1) {  // shell 1
+//        for (auto sh2 = 0; sh2 != nsh; ++sh2) {  // shell 2
+//            // Calculate integrals between the two shells
+//            engine.compute(basisset[sh1], basisset[sh2]);  // this updates the pointers in calculated_integrals
+//
+//
+//            // Place the calculated integrals into the matrix representation(s): the integrals are stored in row-major form
+//            auto bf1 = shell2bf[sh1];  // (index of) first bf in sh1
+//            auto bf2 = shell2bf[sh2];  // (index of) first bf in sh2
+//
+//            auto nbf_sh1 = basisset[sh1].size();  // number of basis functions in first shell
+//            auto nbf_sh2 = basisset[sh2].size();  // number of basis functions in second shell
+//
+//            for (auto f1 = 0; f1 != nbf_sh1; ++f1) {  // f1: index of basis function within shell 1
+//                for (auto f2 = 0; f2 != nbf_sh2; ++f2) { // f2: index of basis function within shell 2
+//
+//                    for (size_t i = 0; i < N; i++) {
+//                        double computed_integral = calculated_integrals[i][f2 + f1 * nbf_sh2];  // integrals are packed in row-major form
+//                        operator_components[i](bf1 + f1, bf2 + f2) = computed_integral;
+//                    }
+//
+//                }
+//            }  // data access loops
+//
+//        }
+//    }  // shell loops
 
     free(libcint_atm);
     free(libcint_bas);
