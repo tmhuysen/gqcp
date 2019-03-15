@@ -2,7 +2,7 @@
 # Try to find Libcint
 
 # The following installations of Libcint are supported:
-#   - /usr/local/libcint
+#   - /usr/local/
 #   - any directory, but with an environment variable ${LIBCINTROOT} or ${LIBCINT_ROOT}, which contains the include, lib and share folders
 
 # If found, this will define
@@ -11,13 +11,13 @@
 #  Libcint_LIBRARIES        the Libcint library + dependency libraries
 
 
-# We have to find the version! Luckily, Libcint -when installed defaultly- provides a directory /usr/local/libcint/x.y.z
+# We have to find the version! Regrettably, Libcint -when installed defaultly- defaults into /usr/local/
 # When the user has set ${LIBCINTROOT} or ${LIBCINT_ROOT} in the enviroment, this path can also be used
-find_path(LIBCINT_PREFIX include/libcint.h HINTS /usr/local/*/ $ENV{LIBCINTROOT} $ENV{LIBCINT_ROOT} ${LIBCINTROOT} ${LIBCINT_ROOT})
+find_path(LIBCINT_PREFIX include/cint.h HINTS /usr/local/*/ $ENV{LIBCINTROOT} $ENV{LIBCINT_ROOT} ${LIBCINTROOT} ${LIBCINT_ROOT})
 
 
 if("${LIBCINT_PREFIX}" STREQUAL "LIBCINT_PREFIX-NOTFOUND")
-    message(FATAL_ERROR "Libcint was not found in the default location /usr/local/libcint/x.y.z or through the environment variables")
+    message(FATAL_ERROR "Libcint was not found in the default location /usr/local/ or through the environment variables")
 else()
     # Set FOUND
     set(Libcint_FOUND TRUE)
