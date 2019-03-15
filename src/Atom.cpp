@@ -31,6 +31,13 @@ namespace GQCP {
  */
 
 /**
+ *  default
+ */
+Atom::Atom() :
+    Atom(0, 0, 0, 0)
+{}
+
+/**
  *  @param atomic_number        the atomic number (Z) of the atom
  *  @param x                    the x-position of the atom in bohr
  *  @param y                    the y-position of the atom in bohr

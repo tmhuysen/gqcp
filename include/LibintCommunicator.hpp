@@ -19,7 +19,7 @@
 #define GQCP_LIBINTCOMMUNICATOR_HPP
 
 
-#include "AOBasis.hpp"
+#include "Basis/AOBasis.hpp"
 #include "Molecule.hpp"
 #include "Operator/OneElectronOperator.hpp"
 #include "Operator/TwoElectronOperator.hpp"
@@ -162,6 +162,7 @@ public:
     libint2::Atom interface(const Atom& atom) const;
 
 
+    // PUBLIC METHODS
     /**
      *  @param atoms        the GQCP-atoms that should be interfaced
      *
