@@ -1,8 +1,8 @@
-#include "LibcintCommunicator.hpp"
+#include "../include/LibcintCommunicator.hpp"
 
-#include "Molecule.hpp"
+#include "../include/Molecule.hpp"
 
-#include "Basis/BasisSet.hpp"
+#include "../include/Basis/BasisSet.hpp"
 
 
 
