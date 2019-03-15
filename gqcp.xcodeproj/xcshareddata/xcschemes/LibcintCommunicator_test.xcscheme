@@ -61,6 +61,13 @@
             ReferencedContainer = "container:gqcp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "LIBINT_DATA_PATH"
+            value = "/usr/local/libint/2.3.1/share/libint/2.3.1/basis"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>

@@ -23,7 +23,23 @@
 #include "LibcintCommunicator.hpp"
 
 
+#include "Molecule.hpp"
+#include "Basis/AOBasis.hpp"
+#include "LibintCommunicator.hpp"
+
+
 BOOST_AUTO_TEST_CASE ( sandbox ) {
+
+    GQCP::Atom h1 (1,  0.0, 0.0, 0.8);  // coordinates in bohr
+    GQCP::Atom h2 (1,  0.0, 0.0, -0.8);
+    GQCP::Molecule mol ({h1, h2});
+
+    GQCP::AOBasis aobasis (mol, "STO-3G");
+    auto S = GQCP::LibintCommunicator::get().calculateOverlapIntegrals(aobasis);
+    std::cout << "Libint S: " << std::endl << S << std::endl << std::endl;;
+
+
+
     GQCP::LibcintCommunicator libcint;
-    libcint.test();  // should output 1 1 1
+    libcint.test();
 }
