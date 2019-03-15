@@ -59,6 +59,21 @@ size_t BasisSet::numberOfShells() const {
     return this->size();
 }
 
+
+/**
+ *  @return the number of basis functions in this basisset
+ */
+size_t BasisSet::number_of_basis_functions() const {
+    size_t number_of_basis_functions = 0;
+    for (const auto& shell : this) {
+        for (const auto& contraction : shell.get_contractions()) {
+            number_of_basis_functions += contraction.number_of_basis_functions;
+        }
+    }
+    return number_of_basis_functions;
+}
+
+
 /**
  *  @return an ordered vector of the unique atoms in this basisset
  */
