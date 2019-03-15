@@ -39,6 +39,7 @@ public:
 
 public:
     // CONSTRUCTORS
+    Atom();  // default
     /**
      *  @param atomic_number        the atomic number (Z) of the atom
      *  @param x                    the x-position of the atom in bohr

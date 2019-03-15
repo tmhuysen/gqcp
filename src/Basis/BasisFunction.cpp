@@ -6,4 +6,4 @@
 //  Copyright © 2019 Laurent Lemmens. All rights reserved.
 //
 
-#include "BasisFunction.hpp"
+#include "Basis/BasisFunction.hpp"
