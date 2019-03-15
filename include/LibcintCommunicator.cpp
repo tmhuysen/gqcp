@@ -103,93 +103,60 @@ void LibcintCommunicator::test() const {
      */
 
 
-//    auto previous_atom = basisset[0].get_atom();
-//
-//    for (size_t n = 0; n < basisset.numberOfShells(); n++) {
-//
-//        auto current_shell = basisset[n];
-//        auto contractions = current_shell.get_contractions();
-//
-//
-//
-//
-//
-//
-//        libcint_bas[ATOM_OF + BAS_SLOTS * n] = 0;  // index of the atom the basisfunction is centered on
-//
-//        for (size_t m = 0; contractions.size(); m++) {
-//            auto current_contraction = contractions[m];
-//
-//            libcint_bas[ANG_OF   + BAS_SLOTS * n] = static_cast<int>(current_contraction.l);  // angular momentum
-//            libcint_bas[NPRIM_OF + BAS_SLOTS * n] = static_cast<int>(current_contraction.length());  // number of primitives
-//            libcint_bas[NCTR_OF  + BAS_SLOTS * n] = static_cast<int>(current_shell.numberOfContractions());  // number of contractions
-//            libcint_bas[PTR_EXP  + BAS_SLOTS * n] = offset;  // pointer to the exponents of the shell inside the libcint environment
-//
-//            for (size_t e = 0; e < current_shell.numberOfContractions(); e++, offset++) {  // also increment offset
-//                libcint_env[offset + e] = current_shell.get_exponents()[e];
-//            }
-//
-//
-//            // input normalized coeff.
-//
-//        }
-//
-//    }
+    int atom_index = 0;  // index of the atom the shell is centered on
+    auto previous_atom = basisset[0].get_atom();
+
+    std::cout << "number of shells: " << basisset.numberOfShells() << std::endl;
+
+    for (size_t n = 0; n < basisset.numberOfShells(); n++) {
+
+        std::cout << "n: " << n << std::endl;
+        auto current_shell = basisset[n];
+        auto contractions = current_shell.get_contractions();
 
 
 
+        // If there's a new atom, increment the index
+        auto current_atom = current_shell.get_atom();
+        if (current_atom != previous_atom) {
+            atom_index++;
+            previous_atom = current_atom;
+        }
+        libcint_bas[ATOM_OF + BAS_SLOTS * n] = atom_index;
+        std::cout << "atom_index: " << atom_index << std::endl;
 
-    int n = 0;
-    /* basis #0, 3s -> 2s */
-    libcint_bas[ATOM_OF  + BAS_SLOTS * n]  = 0;
-    libcint_bas[ANG_OF   + BAS_SLOTS * n]  = 0;
-    libcint_bas[NPRIM_OF + BAS_SLOTS * n]  = 3;
-    libcint_bas[NCTR_OF  + BAS_SLOTS * n]  = 2;
-    libcint_bas[PTR_EXP  + BAS_SLOTS * n]  = offset;
-    libcint_env[offset + 0] = 6.;
-    libcint_env[offset + 1] = 2.;
-    libcint_env[offset + 2] = .8;
-    offset += 3;
-    libcint_bas[PTR_COEFF+ BAS_SLOTS * n] = offset;
-    libcint_env[offset + 0] = .7 * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+0]);
-    libcint_env[offset + 1] = .6 * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+1]);
-    libcint_env[offset + 2] = .5 * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+2]);
-    libcint_env[offset + 3] = .4 * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+0]);
-    libcint_env[offset + 4] = .3 * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+1]);
-    libcint_env[offset + 5] = .2 * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+2]);
-    offset += 6;
-    n++;
 
-    /* basis #1 */
-    libcint_bas[ATOM_OF  + BAS_SLOTS * n]  = 0;
-    libcint_bas[ANG_OF   + BAS_SLOTS * n]  = 1;
-    libcint_bas[NPRIM_OF + BAS_SLOTS * n]  = 1;
-    libcint_bas[NCTR_OF  + BAS_SLOTS * n]  = 1;
-    libcint_bas[PTR_EXP  + BAS_SLOTS * n]  = offset;
-    libcint_env[offset + 0] = .9;
-    offset += 1;
-    libcint_bas[PTR_COEFF+ BAS_SLOTS * n] = offset;
-    libcint_env[offset + 0] = 1. * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]]);
-    offset += 1;
-    n++;
 
-    /* basis #2 == basis #0 */
-    libcint_bas[ATOM_OF  + BAS_SLOTS * n] = 1;
-    libcint_bas[ANG_OF   + BAS_SLOTS * n] = libcint_bas[ANG_OF   + BAS_SLOTS * 0];
-    libcint_bas[NPRIM_OF + BAS_SLOTS * n] = libcint_bas[NPRIM_OF + BAS_SLOTS * 0];
-    libcint_bas[NCTR_OF  + BAS_SLOTS * n] = libcint_bas[NCTR_OF  + BAS_SLOTS * 0];
-    libcint_bas[PTR_EXP  + BAS_SLOTS * n] = libcint_bas[PTR_EXP  + BAS_SLOTS * 0];
-    libcint_bas[PTR_COEFF+ BAS_SLOTS * n] = libcint_bas[PTR_COEFF+ BAS_SLOTS * 0];
-    n++;
+        for (size_t m = 0; m < contractions.size(); m++) {
+            auto current_contraction = contractions[m];
 
-    /* basis #3 == basis #1 */
-    libcint_bas[ATOM_OF  + BAS_SLOTS * n] = 1;
-    libcint_bas[ANG_OF   + BAS_SLOTS * n] = libcint_bas[ANG_OF   + BAS_SLOTS * 1];
-    libcint_bas[NPRIM_OF + BAS_SLOTS * n] = libcint_bas[NPRIM_OF + BAS_SLOTS * 1];
-    libcint_bas[NCTR_OF  + BAS_SLOTS * n] = libcint_bas[NCTR_OF  + BAS_SLOTS * 1];
-    libcint_bas[PTR_EXP  + BAS_SLOTS * n] = libcint_bas[PTR_EXP  + BAS_SLOTS * 1];
-    libcint_bas[PTR_COEFF+ BAS_SLOTS * n] = libcint_bas[PTR_COEFF+ BAS_SLOTS * 1];
-    n++;
+            libcint_bas[ANG_OF   + BAS_SLOTS * n] = static_cast<int>(current_contraction.l);  // angular momentum
+            libcint_bas[NPRIM_OF + BAS_SLOTS * n] = static_cast<int>(current_contraction.length());  // number of primitives
+            libcint_bas[NCTR_OF  + BAS_SLOTS * n] = static_cast<int>(current_shell.numberOfContractions());  // number of contractions
+
+            libcint_bas[PTR_EXP  + BAS_SLOTS * n] = offset;  // pointer to the exponents of the shell inside the libcint environment
+            for (size_t e = 0; e < current_contraction.length(); e++, offset++) {  // also increment offset
+                std::cout << "e: " << e << std::endl;
+                libcint_env[offset + e] = current_shell.get_exponents()[e];
+            }
+
+
+            std::cout << "I'm here" << std::endl;
+
+
+            libcint_bas[PTR_COEFF + BAS_SLOTS * n] = offset;  // pointer to the contraction coefficients inside the libcint environment
+            // input normalized coeff.
+            for (size_t c = 0; c < current_contraction.length(); c++, offset++) {  // also increment offset
+
+
+                std::cout << "contraction coefficient: " << current_contraction.coefficients[c] << std::endl;
+                libcint_env[offset + c] = current_contraction.coefficients[c] * CINTgto_norm(libcint_bas[ANG_OF+BAS_SLOTS*n], libcint_env[libcint_bas[PTR_EXP+BAS_SLOTS*n]+c]);
+            }
+
+
+        }
+
+    }
 
 
 
