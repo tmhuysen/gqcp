@@ -167,6 +167,23 @@ std::vector<libint2::Atom> LibintCommunicator::interface(const std::vector<Atom>
 
 
 /**
+ *  @param libint_shell        the libint2 shell that should be (reverse) interfaced
+ *
+ *  @return GQCP-shell, interfaced from the given shell
+ */
+Shell interface(const libint2::Shell& libint_shell) const {
+
+    std::vector<Contraction> contractions (libint_shell.contr.size());
+
+    for (const auto contraction& : libint_shell.contr) {
+        contractions.emplace_back(static_cast<size_t>(contraction.l), contraction.coeff);
+    }
+
+
+}
+
+
+/**
  *  @param ao_basis     the AO basis used for the calculation of the overlap integrals
  *
  *  @return the overlap integrals expressed in the given AO basis

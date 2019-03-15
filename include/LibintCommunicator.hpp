@@ -142,6 +142,8 @@ public:
     void operator=(LibintCommunicator const& libint_communicator) = delete;
 
 
+
+
     // PUBLIC METHODS
     /**
      *  @param atoms        the GQCP-atoms that should be interfaced
@@ -149,6 +151,13 @@ public:
      *  @return libint2-atoms, interfaced from the given atoms
      */
     std::vector<libint2::Atom> interface(const std::vector<Atom>& atoms) const;
+
+    /**
+     *  @param libint_shell         the libint2 shell that should be (reverse) interfaced
+     *
+     *  @return GQCP-shell, interfaced from the given shell
+     */
+     Shell interface(const libint2::shell& libint_shell) const;
 
     /**
      *  @param ao_basis     the AO basis used for the calculation of the overlap integrals
