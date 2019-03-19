@@ -9,7 +9,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
-#include <gqcp.hpp>
+#include "gqcp.hpp"
 #include "HamiltonianBuilder/FrozenCoreFCI.hpp"
 
 namespace po = boost::program_options;
