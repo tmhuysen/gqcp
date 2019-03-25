@@ -28,6 +28,15 @@ int main(int argc, char** argv) {
     size_t N_beta = 7;
     size_t X = 0;
     std::string name = "";
+    std::time_t now = std::time(0); // THIS WILL NOT WORK PAST JANUARY 19 2038 LMAO
+    std::string random_tag = "";
+
+    for (int i = 0; i < 5; i ++) {
+        random_tag += 'a' + rand()%26;
+    }
+
+    std::string total_tag = std::to_string(now) + random_tag;
+
     bool naturals = false;
     // Input processing
     std::string basisset;
@@ -60,9 +69,8 @@ int main(int argc, char** argv) {
         std::cerr << "ERROR: you have not specified all arguments. Please use the -h flag for more information." << std::endl << std::endl;
     }
 
-    if (name.length() > 0) {
-        name = "_" + name;
-    }
+    name = "_" + name + total_tag;
+
     // extract the lambdas
     std::vector<std::string> splitted_line_lambda;
     boost::split(splitted_line_lambda, lambda_string, boost::is_any_of(","));
