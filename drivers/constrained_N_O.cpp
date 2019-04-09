@@ -257,6 +257,24 @@ int main(int argc, char** argv) {
     davidson_options.convergence_threshold = 1.0e-6;
     davidson_options.correction_threshold = 1.0e-13;
 
+    Eigen::MatrixXd volvo = Eigen::MatrixXd::Zero(fock_space.HartreeFockExpansion().rows(), 4);
+    volvo.col(0) = fock_space.HartreeFockExpansion();
+    Eigen::VectorXd lol1 = fock_space.HartreeFockExpansion();
+    lol1(0) = 0;
+    lol1(1) = 1;
+    volvo.col(1) = lol1;
+    lol1(1) = 0;
+    lol1(2) = 1;
+    volvo.col(2) = lol1;
+    lol1(2) = 0;
+    lol1(3) = 1;
+    volvo.col(3) = lol1;
+    davidson_options.X_0 = volvo;
+
+
+
+    davidson_options.number_of_requested_eigenpairs = 4;
+
     components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
     components.lambda = 0;
 
@@ -290,6 +308,9 @@ int main(int argc, char** argv) {
 
     // NEW GUESS
     auto fci_coefficients = solver.get_eigenpair().get_eigenvector();
+    auto fci_coefficients1 = solver.get_eigenpair(1).get_eigenvector();
+    auto fci_coefficients2 = solver.get_eigenpair(2).get_eigenvector();
+    auto fci_coefficients3 = solver.get_eigenpair(3).get_eigenvector();
 
 
     GQCP::RDMCalculator frozen_fci_calculator (fock_space);
@@ -300,7 +321,16 @@ int main(int argc, char** argv) {
     Eigen::MatrixXd natural_vectors = D.diagonalize().rowwise().reverse();
     Eigen::VectorXd naturals = D.get_matrix_representation().diagonal().reverse();
 
-    davidson_options.X_0 = fci_coefficients;
+    volvo = Eigen::MatrixXd::Zero(fci_coefficients.rows(), 4);
+    volvo.col(0) = fci_coefficients;
+    volvo.col(1) = fci_coefficients1;
+    volvo.col(2) = fci_coefficients2;
+    volvo.col(3) = fci_coefficients3;
+    davidson_options.X_0 = volvo;
+
+
+
+    davidson_options.number_of_requested_eigenpairs = 4;
 
     auto mulliken_operator = mol_ham_par.calculateMullikenOperator(AOlist);
     Eigen::SparseMatrix<double> evaluated_constraint = fci.calculateSpinSeparatedOneElectronOperator(active_space.get_fock_space_beta(),  GQCP::OneElectronOperator<double>(mulliken_operator.block(X,X,K_active, K_active)));
@@ -309,7 +339,7 @@ int main(int argc, char** argv) {
 
         auto constrained_ham_par = mol_ham_par.constrain(mulliken_operator, lambdas(i));
         components.lambda = lambdas(i);
-        components.diagonal = frozen_core.calculateDiagonal(constrained_ham_par);;
+        components.diagonal = frozen_core.calculateDiagonal(constrained_ham_par);
 
         GQCP::DavidsonSolver solver(matrixVectorProduct, components.diagonal, davidson_options);
 
@@ -321,27 +351,37 @@ int main(int argc, char** argv) {
             output_log << "\033[1;31m DAVIDSON FAILED \033[0m" << std::endl;
             continue;
         }
+        size_t counter = 0;
+        Eigen::MatrixXd volvo = Eigen::MatrixXd::Zero(fci_coefficients.rows(), 4);
 
-        auto fci_energy = solver.get_eigenpair().get_eigenvalue();
-        auto fci_coefficients = solver.get_eigenpair().get_eigenvector();
-        double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
-        davidson_options.X_0 = fci_coefficients;
+        const auto& eigenpairs = solver.get_eigenpairs();
+        for (const auto& eigenpair : eigenpairs) {
 
-        frozen_fci_calculator.set_coefficients(fci_coefficients);
-        GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;
+            auto fci_energy = eigenpair.get_eigenvalue();
+            auto fci_coefficients = eigenpair.get_eigenvector();
+            double internuclear_repulsion_energy = molecule.calculateInternuclearRepulsionEnergy();
+            volvo.col(counter) = fci_coefficients;
+            counter++;
+            frozen_fci_calculator.set_coefficients(fci_coefficients);
+            GQCP::OneRDM D = frozen_fci_calculator.calculate1RDMs().one_rdm;
 
-        double mul = calculateExpectationValue(mulliken_operator, D);
+            double mul = calculateExpectationValue(mulliken_operator, D);
 
-        GQCP::WaveFunction wavefunction (fock_space, fci_coefficients);
-        double entropy = wavefunction.calculateShannonEntropy();
+            GQCP::WaveFunction wavefunction (fock_space, fci_coefficients);
+            double entropy = wavefunction.calculateShannonEntropy();
 
-        output_log << "TOTAL ENERGY: " << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t lambda: " << lambdas(i) << "\t population of target: " << mul << std::endl;
-        output_file << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t" << lambdas(i) << "\t" << mul << "\t" << entropy << std::endl;
-        std::cout << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t" << lambdas(i) << "\t" << mul << "\t" << entropy << std::endl;
-        output_log << "1RDM: " << std::setprecision(15) << std::endl << D.get_matrix_representation() << std::endl;
-        output_log << "First eigenvector coefficient: " << std::setprecision(15) << fci_coefficients(0) << std::endl;
-        output_log << "Shannon Entropy: " << std::setprecision(15) << entropy << std::endl;
-        output_log << "Iterations: " << std::setprecision(15) << solver.get_number_of_iterations() << std::endl;
+            output_log << "TOTAL ENERGY: " << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t lambda: " << lambdas(i) << "\t population of target: " << mul << std::endl;
+            output_file << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t" << lambdas(i) << "\t" << mul << "\t" << entropy << std::endl;
+            std::cout << std::setprecision(15) << fci_energy + internuclear_repulsion_energy + lambdas(i) * mul << "\t" << lambdas(i) << "\t" << mul << "\t" << entropy << std::endl;
+            output_log << "1RDM: " << std::setprecision(15) << std::endl << D.get_matrix_representation() << std::endl;
+            output_log << "First eigenvector coefficient: " << std::setprecision(15) << fci_coefficients(0) << std::endl;
+            output_log << "Shannon Entropy: " << std::setprecision(15) << entropy << std::endl;
+            output_log << "Iterations: " << std::setprecision(15) << solver.get_number_of_iterations() << std::endl;
+
+        }
+
+        davidson_options.X_0 = volvo;
+
     }
     output_log << "-------------------general-----------------------"<< std::endl;
 
