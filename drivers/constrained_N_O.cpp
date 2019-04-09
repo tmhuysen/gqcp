@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
 
         // Perform DIIS with the new basis if this fails Lodwin orthonormalize
         try {
-            GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-12, 500);
+            GQCP::DIISRHFSCFSolver diis_scf_solver (mol_ham_par, molecule, 6, 1e-13, 500);
             diis_scf_solver.solve();
             auto rhf = diis_scf_solver.get_solution();
             mol_ham_par.transform(rhf.get_C());
@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
 
     // MATVEC PARAMETERS
     GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
-    davidson_options.maximum_number_of_iterations = 250;
+    davidson_options.maximum_number_of_iterations = 2000;
     davidson_options.collapsed_subspace_dimension = 6;
 
     components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
