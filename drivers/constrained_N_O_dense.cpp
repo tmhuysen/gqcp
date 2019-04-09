@@ -174,6 +174,7 @@ int main(int argc, char** argv) {
 
     GQCP::FrozenProductFockSpace fock_space (K, N_alpha, N_beta, X);
     GQCP::FrozenCoreFCI frozen_core (fock_space);
+    GQCP::RDMCalculator frozen_fci_calculator (fock_space);
     GQCP::DenseSolverOptions solver_option;
     solver_option.number_of_requested_eigenpairs = 10;
     GQCP::CISolver solver(frozen_core, mol_ham_par);
@@ -202,7 +203,7 @@ int main(int argc, char** argv) {
             output_log << "\033[1;31m DENSE FAILED \033[0m" << std::endl;
             continue;
         }
-
+        const auto& eigenpairs = solver.get_eigenpairs();
         for (const auto& eigenpair : eigenpairs) {
 
             auto fci_energy = eigenpair.get_eigenvalue();
@@ -234,11 +235,8 @@ int main(int argc, char** argv) {
     output_log << "mullikenoperator: " << std::setprecision(15) << std::endl << mulliken_operator << std::endl;
 
 
-    output_log << "RDM (no constraint): " << std::setprecision(15) << std::endl << one_dm_base << std::endl;
-    output_log << "RDM Eigenvectors: " << std::setprecision(15) << std::endl << natural_vectors << std::endl;
     output_log << "Total C: " << std::setprecision(15) << std::endl << mol_ham_par.get_T_total() << std::endl;
     output_log << "Basis set used: " << std::setprecision(15) << basisset << std::endl;
-    output_log << "Naturals: " << std::setprecision(15) << std::endl << naturals_vector.transpose() << std::endl;
 
     auto stop = std::chrono::high_resolution_clock::now();
 
