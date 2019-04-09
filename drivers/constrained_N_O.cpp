@@ -254,8 +254,8 @@ int main(int argc, char** argv) {
     GQCP::DavidsonSolverOptions davidson_options(fock_space.HartreeFockExpansion());
     davidson_options.maximum_number_of_iterations = 250;
     davidson_options.collapsed_subspace_dimension = 6;
-    davidson_options.convergence_threshold = 10e-6;
-    davidson_options.correction_threshold = 10e-13;
+    davidson_options.convergence_threshold = 1.0e-6;
+    davidson_options.correction_threshold = 1.0e-13;
 
     components.operators = Eigen::SparseMatrix<double>(beta_dim,beta_dim);
     components.lambda = 0;
