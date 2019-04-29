@@ -60,7 +60,7 @@
 #include "Localization/ERJacobiLocalizer.hpp"
 #include "Localization/ERNewtonLocalizer.hpp"
 
-#include "Operator/BaseOperator.hpp"
+#include "Operator/Operator.hpp"
 #include "Operator/OneElectronOperator.hpp"
 #include "Operator/TwoElectronOperator.hpp"
 
