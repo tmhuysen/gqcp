@@ -42,7 +42,8 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
 
     // Initialize as zero matrices
     size_t K = this->fock_space.get_K();
-
+    size_t N_alpha = this->fock_space.get_N_alpha();
+    size_t N_beta = this->fock_space.get_N_beta();
     OneRDM<double> D_aa = OneRDM<double>::Zero(K, K);
     OneRDM<double> D_bb = OneRDM<double>::Zero(K, K);
 
@@ -53,96 +54,106 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
     auto dim_beta = fock_space_beta.get_dimension();
     
     // ALPHA
-    ONV spin_string_alpha = fock_space_alpha.makeONV(0);  // alpha spin string with address 0
+    ONV onv_alpha = fock_space_alpha.makeONV(0);  // alpha spin string with address 0
     for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {  // I_alpha loops over all the addresses of the alpha spin strings
-        for (size_t p = 0; p < K; p++) {  // p loops over SOs
-            int sign_p = 1;
-            if (spin_string_alpha.annihilate(p, sign_p)) {  // if p is in I_alpha
-                double diagonal_contribution =  0;
+        for (size_t e1 = 0; e1 < N_alpha; e1++) {
 
-                // Diagonal contributions for the 1-DM, i.e. D_pp
-                // We are storing the alpha addresses as 'major', i.e. the total address I_alpha I_beta = I_alpha * dim_beta + I_beta
-                for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {
-                    double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);
-                    diagonal_contribution += std::pow(c_I_alpha_I_beta, 2);
+
+            size_t p = onv_alpha.get_occupation_index(e1);
+
+            double diagonal_contribution =  0;
+
+            // Diagonal contributions for the 1-DM, i.e. D_pp
+            // We are storing the alpha addresses as 'major', i.e. the total address I_alpha I_beta = I_alpha * dim_beta + I_beta
+            for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {
+                double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);
+                diagonal_contribution += std::pow(c_I_alpha_I_beta, 2);
+            }
+            D_aa(p,p) += diagonal_contribution;
+
+            size_t address = I_alpha - fock_space_alpha.get_vertex_weights(p, e1 + 1);
+
+            size_t e2 = e1 + 1;
+            size_t q = p + 1;
+            int sign_e2 = 1;
+            // perform a shift
+            fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(onv_alpha, address, q, e2, sign_e2);
+
+            while (q < K) {
+                size_t J_alpha = address + fock_space_alpha.get_vertex_weights(q, e2);
+                double off_diagonal_contribution = 0;
+                for(size_t I_beta = 0; I_beta < dim_beta; I_beta++) {
+                    double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);  // alpha addresses are 'major'
+                    double c_J_alpha_I_beta = x(J_alpha*dim_beta + I_beta);
+                    off_diagonal_contribution += c_I_alpha_I_beta * c_J_alpha_I_beta;
                 }
-                D_aa(p,p) += diagonal_contribution;
 
-                // Off-diagonal contributions for the 1-DM, i.e. D_pq (p!=q)
-                for (size_t q = 0; q < p; q++) {  // q < p loops over SOs
-                    int sign_pq = sign_p;
-                    if (spin_string_alpha.create(q, sign_pq)) {  // if q is not occupied in I_alpha
-                        size_t J_alpha = fock_space_alpha.getAddress(spin_string_alpha);  // find all strings J_alpha that couple to I_alpha
+                D_aa(p,q) += sign_e2 * off_diagonal_contribution;
+                D_aa(q,p) += sign_e2 * off_diagonal_contribution;
 
-                        double off_diagonal_contribution = 0;
-                        for(size_t I_beta = 0; I_beta < dim_beta; I_beta++) {
-                            double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);  // alpha addresses are 'major'
-                            double c_J_alpha_I_beta = x(J_alpha*dim_beta + I_beta);
-                            off_diagonal_contribution += c_I_alpha_I_beta * c_J_alpha_I_beta;
-                        }
-                        D_aa(p,q) += sign_pq * off_diagonal_contribution;
-                        D_aa(q,p) += sign_pq * off_diagonal_contribution;  // add the symmetric contribution because we are looping over q < p
+                // perform a shift
+                fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(onv_alpha, address, q, e2, sign_e2);
+            }  //  (creation)
+        } // e1 loop (annihilation)
 
-                        spin_string_alpha.annihilate(q);  // undo the previous creation
-                    }  // create on q
-                }  // q loop
-
-                spin_string_alpha.create(p);  // undo the previous annihilation
-            }  // annihilate on p
-        }  // p loop
-
-        if (I_alpha < dim_alpha - 1) {  // prevent the last permutation to occur
-            fock_space_alpha.setNextONV(spin_string_alpha);
+        // Prevent last permutation
+        if (I_alpha < dim_alpha - 1) {
+            fock_space_alpha.setNextONV(onv_alpha);
         }
-        
-    }  // I_alpha loop
+    }
 
 
     // BETA
-    ONV spin_string_beta = fock_space_beta.makeONV(0);  // spin string with address 0
+    ONV onv_beta = fock_space_beta.makeONV(0);  // spin string with address 0
     for (size_t I_beta = 0; I_beta < dim_beta; I_beta++) {  // I_beta loops over all the addresses of the spin strings
-        for (size_t p = 0; p < K; p++) {  // p loops over SOs
-            int sign_p = 1;
-            if (spin_string_beta.annihilate(p, sign_p)) {  // if p is in I_beta
-                double diagonal_contribution = 0;
+        for (size_t e1 = 0; e1 < N_beta; e1++) {
 
-                // Diagonal contributions for the 1-DM, i.e. D_pp
-                // We are storing the alpha addresses as 'major', i.e. the total address I_alpha I_beta = I_alpha * dim_beta + I_beta
-                for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {
-                    double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);
-                    diagonal_contribution += std::pow(c_I_alpha_I_beta, 2);
+
+            size_t p = onv_beta.get_occupation_index(e1);
+
+            double diagonal_contribution =  0;
+
+            // Diagonal contributions for the 1-DM, i.e. D_pp
+            // We are storing the alpha addresses as 'major', i.e. the total address I_alpha I_beta = I_alpha * dim_beta + I_beta
+            for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {
+                double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);
+                diagonal_contribution += std::pow(c_I_alpha_I_beta, 2);
+            }
+
+            D_bb(p,p) += diagonal_contribution;
+
+            size_t address = I_beta - fock_space_beta.get_vertex_weights(p, e1 + 1);
+
+            size_t e2 = e1 + 1;
+            size_t q = p + 1;
+            int sign_e2 = 1;
+
+            // perform a shift
+            fock_space_beta.shiftUntilNextUnoccupiedOrbital<1>(onv_beta, address, q, e2, sign_e2);
+
+            while (q < K) {
+                size_t J_beta = address + fock_space_beta.get_vertex_weights(q, e2);
+                double off_diagonal_contribution = 0;
+                for (size_t I_alpha = 0; I_alpha<dim_alpha; I_alpha++) {
+                    double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);  // alpha addresses are 'major'
+                    double c_I_alpha_J_beta = x(I_alpha*dim_beta + J_beta);
+                    off_diagonal_contribution += c_I_alpha_I_beta * c_I_alpha_J_beta;
                 }
 
-                D_bb(p,p) += diagonal_contribution;
+                D_aa(p,q) += sign_e2 * off_diagonal_contribution;
+                D_aa(q,p) += sign_e2 * off_diagonal_contribution;
 
-                // Off-diagonal contributions for the 1-DM
-                for (size_t q = 0; q < p; q++) {  // q < p loops over SOs
-                    int sign_pq = sign_p;
-                    if (spin_string_beta.create(q, sign_pq)) {  // if q is not in I_beta
-                        size_t J_beta = fock_space_beta.getAddress(spin_string_beta);  // find all strings J_beta that couple to I_beta
+                // perform a shift
+                fock_space_beta.shiftUntilNextUnoccupiedOrbital<1>(onv_beta, address, q, e2, sign_e2);
+            }  //  (creation)
+        } // e1 loop (annihilation)
 
-                        double off_diagonal_contribution = 0;
-                        for (size_t I_alpha = 0; I_alpha<dim_alpha; I_alpha++) {
-                            double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);  // alpha addresses are 'major'
-                            double c_I_alpha_J_beta = x(I_alpha*dim_beta + J_beta);
-                            off_diagonal_contribution += c_I_alpha_I_beta * c_I_alpha_J_beta;
-                        }
-                        D_bb(p,q) += sign_pq * off_diagonal_contribution;
-                        D_bb(q,p) += sign_pq * off_diagonal_contribution;  // add the symmetric contribution because we are looping over q < p
-
-                        spin_string_beta.annihilate(q);  // undo the previous creation
-                    }  // create on q
-                }  // loop over q
-
-                spin_string_beta.create(p);  // undo the previous annihilation
-            }  // annihilate on p
-        }  // loop over p
-
-        if (I_beta < dim_beta - 1) {  // prevent the last permutation to occur
-            fock_space_beta.setNextONV(spin_string_beta);
+        // Prevent last permutation
+        if (I_beta < dim_alpha - 1) {
+            fock_space_beta.setNextONV(onv_beta);
         }
+    }
 
-    }  // I_beta loop
     return OneRDMs<double>(D_aa, D_bb);
 }
 
