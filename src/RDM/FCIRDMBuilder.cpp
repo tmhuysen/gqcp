@@ -91,6 +91,8 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
                 D_aa(p,q) += sign_e2 * off_diagonal_contribution;
                 D_aa(q,p) += sign_e2 * off_diagonal_contribution;
 
+                q++; // go to the next orbital
+
                 // perform a shift
                 fock_space_alpha.shiftUntilNextUnoccupiedOrbital<1>(onv_alpha, address, q, e2, sign_e2);
             }  //  (creation)
@@ -140,8 +142,10 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
                     off_diagonal_contribution += c_I_alpha_I_beta * c_I_alpha_J_beta;
                 }
 
-                D_aa(p,q) += sign_e2 * off_diagonal_contribution;
-                D_aa(q,p) += sign_e2 * off_diagonal_contribution;
+                D_bb(p,q) += sign_e2 * off_diagonal_contribution;
+                D_bb(q,p) += sign_e2 * off_diagonal_contribution;
+
+                q++; // go to the next orbital
 
                 // perform a shift
                 fock_space_beta.shiftUntilNextUnoccupiedOrbital<1>(onv_beta, address, q, e2, sign_e2);
