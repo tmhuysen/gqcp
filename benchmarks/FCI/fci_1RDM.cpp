@@ -18,7 +18,7 @@ static void matvec(benchmark::State& state) {
 
     // Code inside this loop is measured repeatedly
     for (auto _ : state) {
-        GQCP::OneRDMs one_rdms = rdm_builder.calculate1RDMs(x);
+        GQCP::OneRDMs<double> one_rdms = rdm_builder.calculate1RDMs(x);
 
         benchmark::DoNotOptimize(one_rdms);  // make sure the variable is not optimized away by compiler
     }
