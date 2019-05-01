@@ -153,7 +153,7 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
         } // e1 loop (annihilation)
 
         // Prevent last permutation
-        if (I_beta < dim_alpha - 1) {
+        if (I_beta < dim_beta - 1) {
             fock_space_beta.setNextONV(onv_beta);
         }
     }
