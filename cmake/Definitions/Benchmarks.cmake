@@ -11,6 +11,7 @@ set(PROJECT_BENCHMARK_SOURCE_FILES
         ${PROJECT_BENCHMARKS_FOLDER}/DOCI/doci_matrix.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/DOCI/doci_matvec.cpp
 
+        ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_1RDM.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_hchain.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_matrix.cpp
         ${PROJECT_BENCHMARKS_FOLDER}/FCI/fci_matvec.cpp
