@@ -52,7 +52,9 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
 
     auto dim_alpha = fock_space_alpha.get_dimension();
     auto dim_beta = fock_space_beta.get_dimension();
-    
+
+    Eigen::Map<const Eigen::MatrixXd> x_map(x.data(), dim_beta, dim_alpha);
+
     // ALPHA
     ONV onv_alpha = fock_space_alpha.makeONV(0);  // alpha spin string with address 0
     for (size_t I_alpha = 0; I_alpha < dim_alpha; I_alpha++) {  // I_alpha loops over all the addresses of the alpha spin strings
@@ -81,12 +83,7 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
 
             while (q < K) {
                 size_t J_alpha = address + fock_space_alpha.get_vertex_weights(q, e2);
-                double off_diagonal_contribution = 0;
-                for(size_t I_beta = 0; I_beta < dim_beta; I_beta++) {
-                    double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);  // alpha addresses are 'major'
-                    double c_J_alpha_I_beta = x(J_alpha*dim_beta + I_beta);
-                    off_diagonal_contribution += c_I_alpha_I_beta * c_J_alpha_I_beta;
-                }
+                double off_diagonal_contribution = x_map.col(J_alpha).dot(x_map.col(I_alpha));
 
                 D_aa(p,q) += sign_e2 * off_diagonal_contribution;
                 D_aa(q,p) += sign_e2 * off_diagonal_contribution;
@@ -135,12 +132,7 @@ OneRDMs<double> FCIRDMBuilder::calculate1RDMs(const VectorX<double>& x) const {
 
             while (q < K) {
                 size_t J_beta = address + fock_space_beta.get_vertex_weights(q, e2);
-                double off_diagonal_contribution = 0;
-                for (size_t I_alpha = 0; I_alpha<dim_alpha; I_alpha++) {
-                    double c_I_alpha_I_beta = x(I_alpha*dim_beta + I_beta);  // alpha addresses are 'major'
-                    double c_I_alpha_J_beta = x(I_alpha*dim_beta + J_beta);
-                    off_diagonal_contribution += c_I_alpha_I_beta * c_I_alpha_J_beta;
-                }
+                double off_diagonal_contribution = x_map.row(J_beta).dot(x_map.row(I_beta));
 
                 D_bb(p,q) += sign_e2 * off_diagonal_contribution;
                 D_bb(q,p) += sign_e2 * off_diagonal_contribution;
