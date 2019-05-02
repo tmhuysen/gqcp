@@ -573,6 +573,10 @@
 		56B49B8121F2128D000F543B /* AP1roGJacobiOrbitalOptimizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56B49B7B21F2128C000F543B /* AP1roGJacobiOrbitalOptimizer.cpp */; };
 		56B49B8221F2128D000F543B /* APIGGeminalCoefficients.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56B49B7C21F2128D000F543B /* APIGGeminalCoefficients.cpp */; };
 		56B49B8421F2128D000F543B /* AP1roGPSESolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56B49B7E21F2128D000F543B /* AP1roGPSESolver.cpp */; };
+		56B61488227B1DCA0057EB5C /* EvaluatedScalarFunctionOnCubicGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56B61486227B1DCA0057EB5C /* EvaluatedScalarFunctionOnCubicGrid.cpp */; };
+		56B6148B227B25530057EB5C /* EvaluatedScalarFunctionOnCubicGrid.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 56B6148A227B25530057EB5C /* EvaluatedScalarFunctionOnCubicGrid.hpp */; };
+		56B6148E227B25A30057EB5C /* CubicGrid.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 56B6148D227B25A30057EB5C /* CubicGrid.hpp */; };
+		56B61493227B28A30057EB5C /* CubicGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56B61492227B28A30057EB5C /* CubicGrid.cpp */; };
 		56C040652212BCC800C61BB0 /* SelectedCI.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 56C040642212BCC800C61BB0 /* SelectedCI.hpp */; };
 		56C040672212BCDC00C61BB0 /* SelectedCI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56C040662212BCDC00C61BB0 /* SelectedCI.cpp */; };
 		56C0407B2212BD4500C61BB0 /* libgqcp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5614F98021B0295C002C5D40 /* libgqcp.a */; };
@@ -3073,6 +3077,10 @@
 		56B49B7B21F2128C000F543B /* AP1roGJacobiOrbitalOptimizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AP1roGJacobiOrbitalOptimizer.cpp; sourceTree = "<group>"; };
 		56B49B7C21F2128D000F543B /* APIGGeminalCoefficients.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = APIGGeminalCoefficients.cpp; sourceTree = "<group>"; };
 		56B49B7E21F2128D000F543B /* AP1roGPSESolver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AP1roGPSESolver.cpp; sourceTree = "<group>"; };
+		56B61486227B1DCA0057EB5C /* EvaluatedScalarFunctionOnCubicGrid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EvaluatedScalarFunctionOnCubicGrid.cpp; sourceTree = "<group>"; };
+		56B6148A227B25530057EB5C /* EvaluatedScalarFunctionOnCubicGrid.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = EvaluatedScalarFunctionOnCubicGrid.hpp; sourceTree = "<group>"; };
+		56B6148D227B25A30057EB5C /* CubicGrid.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CubicGrid.hpp; sourceTree = "<group>"; };
+		56B61492227B28A30057EB5C /* CubicGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CubicGrid.cpp; sourceTree = "<group>"; };
 		56C040642212BCC800C61BB0 /* SelectedCI.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SelectedCI.hpp; sourceTree = "<group>"; };
 		56C040662212BCDC00C61BB0 /* SelectedCI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SelectedCI.cpp; sourceTree = "<group>"; };
 		56C040682212BD1800C61BB0 /* SelectedCI_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SelectedCI_test.cpp; sourceTree = "<group>"; };
@@ -3999,6 +4007,7 @@
 		5614F98E21B029FB002C5D40 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				56B6148C227B25920057EB5C /* Grid */,
 				566EDE882240F07200D2CA80 /* Basis */,
 				5614F9BE21B029FB002C5D40 /* CISolver */,
 				5614F99121B029FB002C5D40 /* FockSpace */,
@@ -4148,6 +4157,7 @@
 				56288CDF2201C65600403B47 /* CMakeLists.txt */,
 				5614F9D821B029FB002C5D40 /* FockSpace */,
 				56272DBF21B6CC0D008BEA47 /* geminals */,
+				56B61491227B28A30057EB5C /* Grid */,
 				5614FA0921B029FB002C5D40 /* HamiltonianBuilder */,
 				5614FA0521B029FB002C5D40 /* HamiltonianParameters */,
 				5614F9FE21B029FB002C5D40 /* Localization */,
@@ -4735,6 +4745,24 @@
 			name = singles;
 			sourceTree = "<group>";
 		};
+		56B6148C227B25920057EB5C /* Grid */ = {
+			isa = PBXGroup;
+			children = (
+				56B6148D227B25A30057EB5C /* CubicGrid.hpp */,
+				56B6148A227B25530057EB5C /* EvaluatedScalarFunctionOnCubicGrid.hpp */,
+			);
+			path = Grid;
+			sourceTree = "<group>";
+		};
+		56B61491227B28A30057EB5C /* Grid */ = {
+			isa = PBXGroup;
+			children = (
+				56B61492227B28A30057EB5C /* CubicGrid.cpp */,
+				56B61486227B1DCA0057EB5C /* EvaluatedScalarFunctionOnCubicGrid.cpp */,
+			);
+			path = Grid;
+			sourceTree = "<group>";
+		};
 		56C8397D22159E6D00FA98A0 /* math */ = {
 			isa = PBXGroup;
 			children = (
@@ -4883,6 +4911,7 @@
 				5614FA3D21B029FB002C5D40 /* BaseHamiltonianParameters.hpp in Headers */,
 				5614FA0F21B029FB002C5D40 /* DOCINewtonOrbitalOptimizer.hpp in Headers */,
 				56D63084221FE5BE001081EB /* FrozenProductFockSpace.hpp in Headers */,
+				56B6148B227B25530057EB5C /* EvaluatedScalarFunctionOnCubicGrid.hpp in Headers */,
 				56FBA0C421C2B4AF0084F088 /* BaseEigenproblemSolver.hpp in Headers */,
 				56272DBB21B6CBFA008BEA47 /* AP1roGPSESolver.hpp in Headers */,
 				56FBA0C021C2B4AF0084F088 /* Eigenpair.hpp in Headers */,
@@ -4938,6 +4967,7 @@
 				5643B7E621F7073200E1741F /* SpinUnresolvedWaveFunction.hpp in Headers */,
 				56C839832215A30400FA98A0 /* SquareMatrix.hpp in Headers */,
 				56272DBA21B6CBFA008BEA47 /* AP1roGGeminalCoefficients.hpp in Headers */,
+				56B6148E227B25A30057EB5C /* CubicGrid.hpp in Headers */,
 				5643B82121F88A0B00E1741F /* BaseAP1roGSolver.hpp in Headers */,
 				566EDEB322428ABE00D2CA80 /* CartesianExponents.hpp in Headers */,
 				5614FA1521B029FB002C5D40 /* ONV.hpp in Headers */,
@@ -7050,6 +7080,7 @@
 				5614FA5021B029FB002C5D40 /* LibintInterfacer.cpp in Sources */,
 				5614FA5321B029FB002C5D40 /* RHFSCFSolver.cpp in Sources */,
 				5614FA5D21B029FB002C5D40 /* DOCIRDMBuilder.cpp in Sources */,
+				56B61488227B1DCA0057EB5C /* EvaluatedScalarFunctionOnCubicGrid.cpp in Sources */,
 				5614FA4921B029FB002C5D40 /* Molecule.cpp in Sources */,
 				5614FA7021B029FB002C5D40 /* BaseHamiltonianParameters.cpp in Sources */,
 				56D630D0221FE785001081EB /* FrozenCoreFCIRDMBuilder.cpp in Sources */,
@@ -7071,6 +7102,7 @@
 				5614FA5221B029FB002C5D40 /* DIISRHFSCFSolver.cpp in Sources */,
 				56D63094221FE5F1001081EB /* FrozenFockSpace.cpp in Sources */,
 				5614FA5C21B029FB002C5D40 /* RDMCalculator.cpp in Sources */,
+				56B61493227B28A30057EB5C /* CubicGrid.cpp in Sources */,
 				5643B82021F88A0B00E1741F /* BaseAP1roGSolver.cpp in Sources */,
 				5614FA4C21B029FB002C5D40 /* BaseFockSpace.cpp in Sources */,
 				5614FA5921B029FB002C5D40 /* FCIRDMBuilder.cpp in Sources */,
