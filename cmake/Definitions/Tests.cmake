@@ -35,6 +35,8 @@ set(PROJECT_TEST_SOURCE_FILES
         ${PROJECT_TESTS_FOLDER}/geminals/APIGGeminalCoefficients_test.cpp
         ${PROJECT_TESTS_FOLDER}/geminals/OO_AP1roG_test.cpp
 
+        ${PROJECT_TESTS_FOLDER}/Grid/EvaluatedScalarFunctionOnCubicGrid_test.cpp
+
         ${PROJECT_TESTS_FOLDER}/HamiltonianBuilder/DOCI_test.cpp
         ${PROJECT_TESTS_FOLDER}/HamiltonianBuilder/FCI_test.cpp
         ${PROJECT_TESTS_FOLDER}/HamiltonianBuilder/FrozenCoreDOCI_test.cpp

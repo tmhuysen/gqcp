@@ -35,6 +35,9 @@ set(PROJECT_SOURCE_FILES
         ${PROJECT_SOURCE_FOLDER}/geminals/BaseAPIGVariables.cpp
         ${PROJECT_SOURCE_FOLDER}/geminals/GeminalCoefficientsInterface.cpp
 
+        ${PROJECT_SOURCE_FOLDER}/Grid/CubicGrid.cpp
+        ${PROJECT_SOURCE_FOLDER}/Grid/EvaluatedScalarFunctionOnCubicGrid.cpp
+
         ${PROJECT_SOURCE_FOLDER}/HamiltonianBuilder/DOCI.cpp
         ${PROJECT_SOURCE_FOLDER}/HamiltonianBuilder/FCI.cpp
         ${PROJECT_SOURCE_FOLDER}/HamiltonianBuilder/FrozenCoreCI.cpp

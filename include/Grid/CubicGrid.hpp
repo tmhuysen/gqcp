@@ -40,7 +40,7 @@ public:
      *  @return the position vector associated to the given indices
      */
     Vector<double, 3> position(size_t i, size_t j, size_t k) const;
-}
+};
 
 
 
