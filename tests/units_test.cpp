@@ -21,6 +21,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cstdlib>
+#include <cmath>
 #include "units.hpp"
 
 
