@@ -24,7 +24,6 @@ find_package(Spectra REQUIRED)
 find_package(Cint REQUIRED)
 
 if(EIGEN_USE_MKL_ALL)
-    set(BLA_VENDOR Intel10_64lp)
     find_package(BLAS REQUIRED)
 endif()
 
