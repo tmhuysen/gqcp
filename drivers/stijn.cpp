@@ -12,6 +12,8 @@
  *  HARD-CODED
  */
 double StijnDM(const Eigen::VectorXd& coeff, const GQCP::ProductFockSpace& fock) {
+    std::cout<<std::endl<<coeff<<std::endl;
+
     size_t dimension_pa = 0;
     auto K = fock.get_K();
     auto N_a = fock.get_N_alpha();
@@ -123,8 +125,10 @@ double StijnDM(const Eigen::VectorXd& coeff, const GQCP::ProductFockSpace& fock)
             dm(j , i) = dm(i , j);
         } 
     }
-    
+    std::cout<<std::endl<<pa_intermediate<<std::endl;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es (dm);
+    std::cout<<std::endl<<dm<<std::endl;
+    std::cout<<std::endl<<es.eigenvalues()<<std::endl;
     Eigen::ArrayXd eigen_values = Eigen::ArrayXd(es.eigenvalues().array()).unaryExpr([](double c) { return c < 1.0e-18 ? 1 : c;});  // replace 0 by 1;
     Eigen::ArrayXd log_eigen_values = eigen_values.log();  // natural logarithm (ln)
 
@@ -139,12 +143,12 @@ int main(int argc, char** argv) {
     // Time the EXE
     auto start = std::chrono::high_resolution_clock::now();
     // Molecule specifications
-    std::string atom_str1 = "N";
-    std::string atom_str2 = "O";
-    size_t N_alpha = 7;
-    size_t N_beta = 7;
+    std::string atom_str1 = "H";
+    std::string atom_str2 = "H";
+    size_t N_alpha = 1;
+    size_t N_beta = 1;
 
-    size_t n_t = 2;
+    size_t n_t = 1;
 
     // Frozencores
     size_t X = 0;
@@ -297,11 +301,11 @@ int main(int argc, char** argv) {
             double mul = calculateExpectationValue(mulliken_operator, D);
             GQCP::WaveFunction wavefunction (fock_space, fci_coefficients);
 
-            wavefunction.basisTransform(mol_ham_par.get_T_total());
+            wavefunction.basisTransform(mol_ham_par.get_T_total().adjoint());
 
             double entropy = StijnDM(wavefunction.get_coefficients(), fock_space);
             double fci_energy = en + internuclear_repulsion_energy + lambdas(i) * mul;
-
+            std::cout<<"entropies : "<<entropy<<"  "<<std::endl;
             const auto& T = mol_ham_par.get_T_total();
             D.basisTransform<double>(T.adjoint());
             d.basisTransform<double>(T.adjoint());
