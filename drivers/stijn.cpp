@@ -139,10 +139,10 @@ int main(int argc, char** argv) {
     // Time the EXE
     auto start = std::chrono::high_resolution_clock::now();
     // Molecule specifications
-    std::string atom_str1 = "H";
-    std::string atom_str2 = "H";
-    size_t N_alpha = 1;
-    size_t N_beta = 1;
+    std::string atom_str1 = "N";
+    std::string atom_str2 = "O";
+    size_t N_alpha = 7;
+    size_t N_beta = 7;
 
     size_t n_t = 2;
 
