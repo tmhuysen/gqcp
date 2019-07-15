@@ -4,6 +4,7 @@ list(APPEND driver_target_sources
         fci_lowdin.cpp
         hubbard.cpp
         oo_doci.cpp
+        stijn.cpp
         )
 
 foreach(DRIVER_SOURCE ${driver_target_sources})
