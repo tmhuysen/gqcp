@@ -40,7 +40,7 @@ double StijnDM(const Eigen::VectorXd& coeff, const GQCP::ProductFockSpace& fock)
 
     std::cout<<"dimension :"<<dimension_pa;
     GQCP::VectorX<double> pa_intermediate = GQCP::VectorX<double>::Zero(dimension_pa);
-
+    std::vector<std::vector<size_t>> index_list_list;
     GQCP::SquareMatrix<double> dm = GQCP::SquareMatrix<double>::Zero(dimension_pa, dimension_pa);
     
     // Filling of dm
@@ -51,7 +51,7 @@ double StijnDM(const Eigen::VectorXd& coeff, const GQCP::ProductFockSpace& fock)
 
             if (alpha <= K/2 && alpha <= N_a) {
                 GQCP::ProductFockSpace fockA (K/2, alpha, beta);
-
+                std::vector<size_t> index_list;
                 const auto& faA = fockA.get_fock_space_alpha();
                 const auto& fbA = fockA.get_fock_space_beta();
 
@@ -107,6 +107,7 @@ double StijnDM(const Eigen::VectorXd& coeff, const GQCP::ProductFockSpace& fock)
                         }   
 
                         pa_intermediate(index) = c;
+                        index_list.emplace_back(index);
                         index++;
                     }
 
@@ -114,22 +115,27 @@ double StijnDM(const Eigen::VectorXd& coeff, const GQCP::ProductFockSpace& fock)
                         faA.setNextONV(alphao);
                     }
                 }
+
+                index_list_list.emplace_back(index_list);
+                index_list.empty();
             }
         }
     }
 
     for (size_t i = 0; i < dimension_pa; i++) {
-        dm(i , i) = pa_intermediate(i) * pa_intermediate(i);
-        for (size_t j = i + 1; j < dimension_pa; j++) {
-            dm(i , j) = pa_intermediate(i) * pa_intermediate(j);
-            dm(j , i) = dm(i , j);
+        for (auto const& index_list : index_list_list) {
+            for (size_t index : index_list) {
+                for (size_t index2 : index_list) {
+                    dm(index , index2) = pa_intermediate(index) * pa_intermediate(index2);
+                }
+            }
         } 
     }
     std::cout<<std::endl<<pa_intermediate<<std::endl;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es (dm);
     std::cout<<std::endl<<dm<<std::endl;
     std::cout<<std::endl<<es.eigenvalues()<<std::endl;
-    Eigen::ArrayXd eigen_values = Eigen::ArrayXd(es.eigenvalues().array()).unaryExpr([](double c) { return c < 1.0e-18 ? 1 : c;});  // replace 0 by 1;
+    Eigen::ArrayXd eigen_values = Eigen::ArrayXd(es.eigenvalues().array()).unaryExpr([](double c) { return c < 1.0e-15 ? 1 : c;});  // replace 0 by 1;
     Eigen::ArrayXd log_eigen_values = eigen_values.log();  // natural logarithm (ln)
 
     return - 1 / std::log(2) * (eigen_values * log_eigen_values).sum();
@@ -301,7 +307,7 @@ int main(int argc, char** argv) {
             double mul = calculateExpectationValue(mulliken_operator, D);
             GQCP::WaveFunction wavefunction (fock_space, fci_coefficients);
 
-            wavefunction.basisTransform(mol_ham_par.get_T_total().adjoint());
+            //wavefunction.basisTransform(mol_ham_par.get_T_total().adjoint());
 
             double entropy = StijnDM(wavefunction.get_coefficients(), fock_space);
             double fci_energy = en + internuclear_repulsion_energy + lambdas(i) * mul;
